@@ -64,7 +64,7 @@ graph TB
 
 ### Detection VLM
 
-Object detection is performed using either an open-vocabulary object detector (YOLOe) or a VLM-based detector (GPT-4V via API call) initialized with a set of labels or a description of the objects to detect. These models operate onthe front camera image and produce 2D bounding boxes. In parallel, a downsampled voxel grid derived from the LiDAR point cloud and our SLAM odometry estimate is maintained. Accordingly, LiDAR points are projected into the camera frame using the current pose estimate and the camera projection matrix. Valid points are clustered to identify those that fall within each 2D detection/mask. This produces aligned 2D detections and corresponding 3D bounding volumes.
+Object detection is performed using either an open-vocabulary object detector (YOLOe) or a VLM-based detector (GPT-4V via API call) initialized with a set of labels or a description of the objects to detect. These models operate on the front camera image and produce 2D bounding boxes. In parallel, a downsampled voxel grid derived from the LiDAR point cloud and our SLAM odometry estimate is maintained. Accordingly, LiDAR points are projected into the camera frame using the current pose estimate and the camera projection matrix. Valid points are clustered to identify those that fall within each 2D detection/mask. This produces aligned 2D detections and corresponding 3D bounding volumes.
 
 ### Q&A VLM
 
@@ -149,7 +149,6 @@ Topics and frame remappings are set in:
 | `vlm/verbose` (YOLOe)                | If `True`, prints inference statistics                                                                                     |
 | `vlm/confidence_threshold` (YOLOe)   | Detection confidence threshold                                                                                             |
 | `vlm/cuda` (YOLOe)                   | Whether to use cuda                                                                                                        |
-| `vlm/client_config/api_key` (OpenAI) | OpenAI API key                                                                                                             |
 | `vlm/client_config/model` (OpenAI)   | Model to use                                                                                                               |
 | `prompt` (OpenAI)                    | Detection prompt. Specify/describe objects to detect                                                                       |
 
@@ -199,7 +198,6 @@ Topics and frame remmapings are set in `detection_vlm/detection_vlm_ros/launch/r
 | ------------------------------------ | ---------------------------------------------------- |
 | `vlm/type`                           | Which vlm to use: only `openai` is supported for now |
 | `vlm/type`                           | Which vlm to use: only `openai` is supported for now |
-| `vlm/client_config/api_key` (OpenAI) | OpenAI API key                                       |
 | `vlm/client_config/model` (OpenAI)   | Model to use                                         |
 | `prompt` (OpenAI)                    | Detection prompt. Specify/describe objects to detect |
 
