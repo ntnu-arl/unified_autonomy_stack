@@ -2,4 +2,4 @@ repositories:
   src/cam_sync:
     type: git
     url: git@github.com:ntnu-arl/cam_sync.git
-    version: 2032747aeb512cc25a84fa7f173eeda9797790a9
+    version: c107efa34fa17ba91c6b801392b0f23c84abe605

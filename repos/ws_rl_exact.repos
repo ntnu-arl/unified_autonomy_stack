@@ -2,7 +2,7 @@ repositories:
   src/rl_nav:
     type: git
     url: git@github.com:ntnu-arl/rl_nav.git
-    version: 96ec786148382528a597cad12150091257e6c49a
+    version: f056e93279487ec3ad7568f790dc446ee52431e5
   src/ros2_numpy:
     type: git
     url: git@github.com:Box-Robotics/ros2_numpy.git

@@ -2,7 +2,7 @@ repositories:
   src/dome_lidar_processor:
     type: git
     url: git@github.com:ntnu-arl/dome_lidar_processor.git
-    version: d181a3409063e0a33fc802daf17bc134c3afce70
+    version: 3749d760afb83d93fdbd146523d71723335f96bb
   src/mav_comm:
     type: git
     url: git@github.com:ethz-asl/mav_comm.git
