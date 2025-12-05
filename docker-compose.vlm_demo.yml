@@ -133,3 +133,4 @@ services:
       - ./workspaces/ws_vlm:/workspace
     environment:
       - ROS_DOMAIN_ID=${DOMAIN_ID}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
