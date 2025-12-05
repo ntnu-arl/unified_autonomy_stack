@@ -1,7 +1,7 @@
 # Unified Autonomy Stack
 
 Welcome to the documentation for the **Unified Autonomy Stack**. 
-This stack presents an autonomy architecture integrating perception, planning, and navigation algorithms developed and field tested at the [Autonomous Robots Lab](https://www.autonomousrobotslab.com) across robot configurations. The stack consists of the software for the core algorithms along with drivers, utilities, and tools for simulation and testing. We currently support multirotor and ground systems with extension to other systems, such as underwater robots, coming soon. The software distributed as a part of this stack has been thoroughly tested in real-world scenarios demonstrating robust autonomous operation in challenging GPS-denied environments.
+This stack presents an autonomy architecture integrating perception, planning, and navigation algorithms developed and field tested at the [Autonomous Robots Lab](https://www.autonomousrobotslab.com) across robot configurations. The stack consists of the software for the core algorithms along with drivers, utilities, and tools for simulation and testing. We currently support rotary-wing (e.g., multirotor) and certain ground systems (e.g., legged robots) with extension to other systems, such as underwater robots, coming soon. The software distributed as a part of this stack has been thoroughly tested in real-world scenarios demonstrating robust autonomous operation in challenging GPS-denied environments.
 
 ![Unified Autonomy Stack Landing Image](docs/report/figs/merged-multi-domain-photo.jpg)
 
