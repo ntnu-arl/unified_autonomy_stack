@@ -1,0 +1,254 @@
+# ==================== ANCHORS/TEMPLATES ====================
+x-system-template: &system-template
+  # runtime: nvidia
+  working_dir: /workspace
+  network_mode: host
+  ipc: host
+  restart: "no"
+  stdin_open: true
+  tty: true
+  environment:
+  - DISPLAY=${DISPLAY:-:0}
+  - NVIDIA_VISIBLE_DEVICES=all
+  - NVIDIA_DRIVER_CAPABILITIES=all
+  - QT_X11_NO_MITSHM=1
+  - DISABLE_ROS1_EOL_WARNINGS=1
+  volumes:
+    - /tmp/.X11-unix:/tmp/.X11-unix:rw
+
+x-x11-volume: &x11-volume
+  /tmp/.X11-unix:/tmp/.X11-unix:rw
+
+x-robot-bringup-volume: &robot-bringup-volume
+  ./workspaces/robot_bringup:/workspace/src/robot_bringup:rw
+
+x-recorded-data-volume: &recorded-data-volume
+  ./data:/data:rw
+
+x-catkin-build-template: &catkin-build-template
+  <<: *system-template
+  command: catkin build -DCMAKE_BUILD_TYPE=Release
+  profiles: ["build"]
+
+x-colcon-build-template: &colcon-build-template
+  <<: *system-template
+  command: colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release #TODO number of cores, check config file in magpie for colcon defaults
+  profiles: ["build"]
+
+x-ros1-wait-for-roscore: &ros1-wait-for-roscore
+  depends_on:
+    ros1_launch_roscore:
+      condition: service_healthy
+
+x-ros1-launch-template: &ros1-launch-template
+  <<: [*system-template, *ros1-wait-for-roscore]
+  profiles: ["launch"]
+
+x-ros2-launch-template: &ros2-launch-template
+  <<: [*system-template]
+  profiles: ["launch"]
+
+# ==================== SERVICES ====================
+
+services:
+  # # ==================== UTILITIES ====================
+
+  # --- ROScore (needed for centralized roscore) ---
+  ros1_launch_roscore:
+    <<: [*system-template]
+    image: unified_autonomy:ros1_base
+    profiles: ["launch"]
+    command: roscore
+    healthcheck:
+      test: ["CMD-SHELL", "bash", "-c", "source /opt/ros/noetic/setup.bash && rostopic list || exit 1"]
+      interval: 2s
+      timeout: 2s
+      retries: 5
+      start_period: 3s  # Give it time to start before checking
+
+  build_ros1_launcher:
+    <<: [*catkin-build-template]
+    image: unified_autonomy:ros1_base
+    volumes:
+      - ./workspaces/ws_ros1_launcher:/workspace
+      - *robot-bringup-volume
+
+  # --- ROS1 Bridge (ROS2) ---
+  build_ros1_bridge:
+    <<: [*colcon-build-template]
+    image: unified_autonomy:ros1-bridge-builder
+    command: sh -c "cat /ws_ros1_bridge.tgz | tar xzf - -C /workspaces"
+    volumes:
+      - ./workspaces:/workspaces
+  
+  ros1_launch_bridge_params:
+    <<: [*ros1-launch-template]
+    image: unified_autonomy:ros1_base
+    command: bash -c "roslaunch robot_bringup bridge_params.launch config_file:=uav_unipilot"
+    volumes:
+      - *robot-bringup-volume
+      - *recorded-data-volume
+      - ./workspaces/ws_ros1_launcher:/workspace # TODO: This is a hack to get a workspace mounted which has the robot bringup package built.
+
+  
+  ros2_launch_ros1_bridge:
+    <<: [*ros2-launch-template]
+    image: unified_autonomy:ros2_ros1_bridge
+    # command: ros2 run ros1_bridge dynamic_bridge #TODO: set this as a static bridge which is actually a param bridge file -check new magpie for this/
+    command: bash -c "ros2 run ros1_bridge parameter_bridge"
+    # command: bash -c "ros2 run ros1_bridge parameter_bridge --bridge-tf-frames "map" "rmf" "rmf/base_link/lidar""
+    volumes:
+      - ./workspaces/ws_ros1_bridge:/workspace
+    environment:
+      - ROS_DOMAIN_ID=${DOMAIN_ID}
+    depends_on:
+      ros1_launch_roscore:
+        condition: service_healthy
+
+  # ==================== CODE ====================
+  # * Each workspace is built and launched in its own service
+  # * Convenience common map merges are provided for the expected standard use cases
+  # * eg. <<: [*catkin-build-template] to inherit common build settings, <<: [*ros1-launch-template]
+  # * to inherit common ros 1launch settings ...
+  # * Naming convention:
+  # *   build service: build_<workspace_name>
+  # *   ros1_launch service: ros1_launch_<workspace_name>
+  # *   ros2_launch service: ros2_launch_<workspace_name>
+  # *   workspace folder: ws_<workspace_name>
+
+  # ==================== PLANNING ====================
+
+  # Planner
+  # --- GBPlanner ---
+  build_gbplanner:
+    <<: [*catkin-build-template]
+    image: unified_autonomy:ros1_gbplanner
+    volumes:
+      - *robot-bringup-volume
+      - ./workspaces/ws_gbplanner:/workspace
+
+  ros1_launch_gbplanner:
+    <<: [*ros1-launch-template]
+    image: unified_autonomy:ros1_gbplanner
+    command: roslaunch robot_bringup gbplanner_sim.launch robot_name:=rmf_unipilot config_name:=uav_rl_sim
+    privileged: true
+    volumes:
+      - *x11-volume
+      - *robot-bringup-volume
+      - ./workspaces/ws_gbplanner:/workspace
+    devices:
+      - /dev/dri:/dev/dri
+    deploy:  # Add this section
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  # ==================== SIMULATION ====================
+
+  # --- Simulation ---
+  build_sim:
+    <<: [*colcon-build-template]
+    image: unified_autonomy:ros2_sim
+    command: colcon build --cmake-force-configure --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
+    volumes:
+      - *x11-volume
+      - *robot-bringup-volume
+      - ./workspaces/ws_sim:/workspace
+
+  ros2_launch_uav_sim:
+    <<: [*ros2-launch-template]
+    image: unified_autonomy:ros2_sim
+    runtime: nvidia
+    command: ros2 launch robot_bringup uav_sim_unipilot.launch.xml
+    privileged: true
+    volumes:
+      - *x11-volume
+      - *robot-bringup-volume
+      - ./workspaces/ws_sim:/workspace
+    devices:
+      - /dev/dri:/dev/dri
+    environment:
+      - ROS_DOMAIN_ID=${DOMAIN_ID}
+      - DISPLAY=${DISPLAY}
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+  
+  # ros2_launch_ugv_sim:
+  #   <<: [*ros2-launch-template]
+  #   image: unified_autonomy:ros2_sim
+  #   runtime: nvidia
+  #   command: ros2 launch ugv_gz gazebo.launch.py
+  #   privileged: true
+  #   group_add:
+  #     - video
+  #   volumes:
+  #     - *x11-volume
+  #     - *robot-bringup-volume
+  #     - ./workspaces/ws_sim:/workspace
+  #   devices:
+  #     - /dev/dri:/dev/dri
+  #   environment:
+  #     - ROS_DOMAIN_ID=${DOMAIN_ID}
+  #     - DISPLAY=${DISPLAY}
+  #     - NVIDIA_VISIBLE_DEVICES=all
+  #     - NVIDIA_DRIVER_CAPABILITIES=all
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: all
+  #             capabilities: [gpu]
+
+  # # ==================== VLM ====================
+
+  # --- VLM ---
+  # build_vlm:
+  #   <<: [*catkin-build-template]
+  #   image: unified_autonomy:ros1_vlm
+  #   runtime: nvidia
+  #   volumes:
+  #     - *x11-volume
+  #     - *robot-bringup-volume
+  #     - ./workspaces/ws_vlm:/workspace
+
+  # ros1_launch_vlm:
+  #   <<: [*ros1-launch-template]
+  #   image: unified_autonomy:ros1_vlm
+  #   runtime: nvidia
+  #   command: roslaunch robot_bringup reasoning_vlm.launch
+  #   volumes:
+  #     - *x11-volume
+  #     - *robot-bringup-volume
+  #     - ./workspaces/ws_vlm:/workspace
+
+
+  # # # ==================== RL ====================
+  ros2_launch_rl:
+    <<: *ros2-launch-template
+    image: unified_autonomy:ros2_rl
+    runtime: nvidia
+    environment:
+      - DISPLAY=${DISPLAY}
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      - QT_X11_NO_MITSHM=1
+      - ROS_DOMAIN_ID=${DOMAIN_ID}
+    command: bash -c "source /opt/ros/humble/setup.bash && cd /workspace/src/rl_nav/scripts && python3 lidar_nav_vel_ros2_node.py --env=lidar_navigation_task --experiment="magpie_lidar_policy7_vel_ttc_yaw_noisy_obs_21_Nov""
+    volumes:
+      - ./workspaces/ws_rl:/workspace
+      - *robot-bringup-volume
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - /dev/dri:/dev/dri
+    devices:
+      - /dev/dri:/dev/dri

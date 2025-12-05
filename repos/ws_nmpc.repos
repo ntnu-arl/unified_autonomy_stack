@@ -1,0 +1,17 @@
+repositories:
+  src/dome_lidar_processor:
+    type: git
+    url: git@github.com:ntnu-arl/dome_lidar_processor.git
+    version: ros2
+  src/mav_comm:
+    type: git
+    url: git@github.com:ethz-asl/mav_comm.git
+    version: ros2
+  src/sdf-nmpc:
+    type: git
+    url: git@github.com:ntnu-arl/sdf-nmpc.git
+    version: dev/unified_autonomy_stack
+  src/sdf_nmpc_ros:
+    type: git
+    url: git@github.com:ntnu-arl/sdf_nmpc_ros.git
+    version: release/unified_autonomy_stack

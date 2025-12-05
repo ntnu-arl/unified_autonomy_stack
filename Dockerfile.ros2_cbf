@@ -1,0 +1,16 @@
+FROM unified_autonomy:ros2_base
+
+COPY ./entrypoint.sh /
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
+
+# Create developer user
+RUN groupadd --gid 1000 developer && \
+    useradd --uid 1000 --gid 1000 -m developer && \
+    echo developer ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/developer && \
+    chmod 0440 /etc/sudoers.d/developer
+    
+USER developer
+WORKDIR /home/developer
+
+CMD ["bash"]

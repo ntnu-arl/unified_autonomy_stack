@@ -1,0 +1,9 @@
+repositories:
+  src/mavlink:
+    type: git
+    url: git@github.com:mavlink/mavlink-gbp-release.git
+    version: a25f3ed08ed5ea74df38b223a7cc7b3c16bb2c99
+  src/mavros:
+    type: git
+    url: git@github.com:ntnu-arl/mavros.git
+    version: dev/fix_empty_trajectory

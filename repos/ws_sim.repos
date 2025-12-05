@@ -1,0 +1,13 @@
+repositories:
+  src/rmf_gz:
+    type: git
+    url: git@github.com:ntnu-arl/rmf_gz.git
+    version: dev/unified_autonomy_stack
+  src/subt_cave_sim:
+    type: git
+    url: git@github.com:ntnu-arl/subt_cave_sim.git
+    version: ros2
+  src/ugv_gz:
+    type: git
+    url: git@github.com:ntnu-arl/ugv_gz.git
+    version: dev/unified_autonomy_stack

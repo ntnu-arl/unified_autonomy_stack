@@ -1,0 +1,122 @@
+FROM unified_autonomy:ros2_base
+
+# Prevent interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Add Gazebo Harmonic repository
+RUN apt-get update && apt-get install -y \
+    wget \
+    lsb-release \
+    gnupg \
+    && wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null \
+    && apt-get update \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Gazebo Harmonic and ROS2 GZ Harmonic integration
+RUN apt-get update && apt-get install -y \
+    gz-harmonic \
+    ros-humble-ros-gzharmonic \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-file update
+
+# Install dependencies for building gz-sim from source
+RUN apt-get update && apt-get install -y \
+    git \
+    cmake \
+    build-essential \
+    libgz-cmake3-dev \
+    libgz-common5-dev \
+    libgz-fuel-tools9-dev \
+    libgz-gui8-dev \
+    libgz-math7-dev \
+    libgz-msgs10-dev \
+    libgz-physics7-dev \
+    libgz-plugin2-dev \
+    libgz-rendering8-dev \
+    libgz-sensors8-dev \
+    libgz-tools2-dev \
+    libgz-transport13-dev \
+    libgz-utils2-dev \
+    libsdformat14-dev \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-file update
+
+# Clone and build forked gz-sim
+WORKDIR /tmp/gz-sim-build
+RUN git clone https://github.com/ntnu-arl/gz-sim.git && \
+    cd gz-sim && \
+    git checkout sim8/dev/multicopter_control && \
+    mkdir build && \
+    cd build && \
+    cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_DOCS=false -DCMAKE_BUILD_TYPE=Release .. && \
+    make -j$(nproc) && \
+    make install && \
+    cd / && \
+    rm -rf /tmp/gz-sim-build
+
+# Install ROS2 packages for robot description and control
+RUN apt-get update && apt-get install -y \
+    # Robot state publisher and joint state publisher
+    ros-humble-robot-state-publisher \
+    ros-humble-joint-state-publisher \
+    ros-humble-joint-state-publisher-gui \
+    # URDF and xacro
+    ros-humble-xacro \
+    ros-humble-urdf \
+    # ROS2 control
+    ros-humble-ros2-control \
+    ros-humble-ros2-controllers \
+    ros-humble-controller-manager \
+    ros-humble-diff-drive-controller \
+    # RViz2
+    ros-humble-rviz2 \
+    ros-humble-rviz-common \
+    ros-humble-rviz-default-plugins \
+    # Teleoperation
+    ros-humble-teleop-twist-keyboard \
+    ros-humble-teleop-twist-joy \
+    # TF2 tools
+    ros-humble-tf2-tools \
+    ros-humble-tf-transformations \
+    # Additional useful packages
+    ros-humble-rqt \
+    ros-humble-rqt-common-plugins \
+    ros-humble-rqt-robot-steering \
+    # Sensor message types
+    ros-humble-sensor-msgs \
+    ros-humble-nav-msgs \
+    ros-humble-geometry-msgs \
+    # Clean up
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-file update
+
+# Install Python dependencies for robot control scripts
+RUN pip3 install --no-cache-dir \
+    numpy \
+    matplotlib \
+    scipy
+
+# Update rosdep
+RUN rosdep update
+
+# Set up Gazebo environment variables
+ENV GZ_VERSION=harmonic
+ENV GZ_SIM_RESOURCE_PATH=/usr/share/gz/gz-sim8/worlds
+
+COPY ./entrypoint.sh /
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
+
+# Create developer user
+RUN groupadd --gid 1000 developer && \
+    useradd --uid 1000 --gid 1000 -m developer && \
+    echo developer ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/developer && \
+    chmod 0440 /etc/sudoers.d/developer
+    
+USER developer
+
+# Set working directory
+WORKDIR /workspace
+
+CMD ["bash"]

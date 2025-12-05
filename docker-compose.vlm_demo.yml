@@ -1,0 +1,135 @@
+# ==================== ANCHORS/TEMPLATES ====================
+x-system-template: &system-template
+  # runtime: nvidia
+  working_dir: /workspace
+  network_mode: host
+  ipc: host
+  restart: "no"
+  stdin_open: true
+  tty: true
+  environment:
+  - DISPLAY=${DISPLAY:-:0}
+  - NVIDIA_VISIBLE_DEVICES=all
+  - NVIDIA_DRIVER_CAPABILITIES=all
+  - QT_X11_NO_MITSHM=1
+  - DISABLE_ROS1_EOL_WARNINGS=1
+  volumes:
+    - /tmp/.X11-unix:/tmp/.X11-unix:rw
+
+x-x11-volume: &x11-volume
+  /tmp/.X11-unix:/tmp/.X11-unix:rw
+
+x-robot-bringup-volume: &robot-bringup-volume
+  ./workspaces/robot_bringup:/workspace/src/robot_bringup:rw
+
+x-recorded-data-volume: &recorded-data-volume
+  ./data:/data:rw
+
+x-catkin-build-template: &catkin-build-template
+  <<: *system-template
+  command: catkin build -DCMAKE_BUILD_TYPE=Release
+  profiles: ["build"]
+
+x-colcon-build-template: &colcon-build-template
+  <<: *system-template
+  command: colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release #TODO number of cores, check config file in magpie for colcon defaults
+  profiles: ["build"]
+
+x-ros1-wait-for-roscore: &ros1-wait-for-roscore
+  depends_on:
+    ros1_launch_roscore:
+      condition: service_healthy
+
+x-ros1-launch-template: &ros1-launch-template
+  <<: [*system-template, *ros1-wait-for-roscore]
+  profiles: ["launch"]
+
+x-ros2-launch-template: &ros2-launch-template
+  <<: [*system-template]
+  profiles: ["launch"]
+
+
+services:
+  # --- ROScore (needed for centralized roscore) ---
+  ros1_launch_roscore:
+    <<: [*system-template]
+    image: unified_autonomy:ros1_base
+    profiles: ["launch"]
+    command: roscore
+    healthcheck:
+      test: ["CMD-SHELL", "bash", "-c", "source /opt/ros/noetic/setup.bash && rostopic list || exit 1"]
+      interval: 2s
+      timeout: 2s
+      retries: 5
+      start_period: 3s  # Give it time to start before checking
+
+  ros1_launch_bridge_params:
+    <<: [*ros1-launch-template]
+    image: unified_autonomy:ros1_base
+    command: bash -c "roslaunch robot_bringup bridge_params_robot.launch"
+    volumes:
+      - *robot-bringup-volume
+      - *recorded-data-volume
+      - ./workspaces/ws_ros1_launcher:/workspace # TODO: This is a hack to get a workspace mounted which has the robot bringup package built.
+
+  
+  ros2_launch_ros1_bridge:
+    <<: [*ros2-launch-template]
+    image: unified_autonomy:ros2_ros1_bridge
+    # command: ros2 run ros1_bridge dynamic_bridge #TODO: set this as a static bridge which is actually a param bridge file -check new magpie for this/
+    command: bash -c "ros2 run ros1_bridge parameter_bridge"
+    # command: bash -c "ros2 run ros1_bridge parameter_bridge --bridge-tf-frames "map" "rmf" "rmf/base_link/lidar""
+    volumes:
+      - ./workspaces/ws_ros1_bridge:/workspace
+    environment:
+      - ROS_DOMAIN_ID=${DOMAIN_ID}
+    depends_on:
+      ros1_launch_roscore:
+        condition: service_healthy
+
+  # ==================== DRIVERS ====================
+  # LiDAR
+  # --- RSLidar SDK ---
+  ros1_launch_rslidar_sdk:
+    <<: [*ros1-launch-template]
+    image: unified_autonomy:ros1_base
+    command: roslaunch robot_bringup airy_offline.launch
+    volumes:
+      - *robot-bringup-volume
+      - ./workspaces/ws_rslidar_sdk:/workspace
+  
+  # ==================== PERCEPTION ====================
+
+  # Estimation / SLAM
+  # --- MIMOSA ---
+  ros1_launch_mimosa:
+    <<: [*ros1-launch-template]
+    image: unified_autonomy:ros1_base
+    command: roslaunch robot_bringup mimosa.launch viz:=true
+    privileged: true
+    volumes:
+      - *x11-volume
+      - *robot-bringup-volume
+      - ./workspaces/ws_mimosa:/workspace
+    devices:
+      - /dev/dri:/dev/dri
+    deploy:  # Add this section
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  # --- VLM ---
+  ros2_launch_vlm:
+    <<: [*ros2-launch-template]
+    image: unified_autonomy:ros2_vlm
+    command: bash -c "sleep 15 && source /opt/ros/humble/setup.bash && source install/local_setup.bash && ros2 launch detection_vlm_ros detection_vlm.launch.yaml"
+    runtime: nvidia
+    volumes:
+      - *x11-volume
+      # - *robot-bringup-volume
+      - ./workspaces/ws_vlm:/workspace
+    environment:
+      - ROS_DOMAIN_ID=${DOMAIN_ID}

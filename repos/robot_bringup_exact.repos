@@ -1,0 +1,5 @@
+repositories:
+  robot_bringup:
+    type: git
+    url: git@github.com:ntnu-arl/robot_bringup.git
+    version: c08254a2e784a19628e5151a3b6124dec162f01d

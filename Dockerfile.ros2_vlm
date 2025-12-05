@@ -1,0 +1,47 @@
+FROM unified_autonomy:ros2_base
+# Prevent interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
+# Install additional development tools and GUI support
+
+RUN apt-get update && apt-get install -y \
+    python3-venv \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-file update
+    
+# Create a non-root user for development
+ARG USERNAME=developer
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+ARG USER_GROUPS="adm,dialout,cdrom,sudo,audio,dip,video,plugdev,render,i2c,lpadmin,gdm,sambashare,docker,weston-launch,gpio"
+RUN groupadd --gid $USER_GID $USERNAME \
+    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME \
+    && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
+    && chmod 0440 /etc/sudoers.d/$USERNAME \
+    && if [ -n "$USER_GROUPS" ]; then \
+        for group in $(echo $USER_GROUPS | tr ',' ' '); do \
+            if ! getent group $group > /dev/null 2>&1; then \
+                groupadd $group; \
+            fi; \
+        done; \
+        usermod -aG $USER_GROUPS $USERNAME; \
+    fi
+# Set NVIDIA runtime for GPU access
+ENV NVIDIA_VISIBLE_DEVICES=all
+ENV NVIDIA_DRIVER_CAPABILITIES=all
+# Switch to the developer user BEFORE creating directories
+USER $USERNAME
+WORKDIR /home/$USERNAME
+# Create python virtual environment
+RUN python3 -m venv --system-site-packages /home/$USERNAME/detection_vlm_venv \
+    && /home/$USERNAME/detection_vlm_venv/bin/pip install --upgrade pip && \
+    /home/$USERNAME/detection_vlm_venv/bin/pip install spark_config@git+https://github.com/ntnu-arl/Spark-Config.git && \
+    /home/$USERNAME/detection_vlm_venv/bin/pip install 'open3d==0.19.0' 'openai==1.97.0' 'numpy<2' 'opencv-python==4.10.0.84' ultralytics scipy
+ENV SHELL=/bin/bash
+# Initialize rosdep for the user (rosdep init was already run in the base image)
+RUN rosdep update
+# Setup ROS environment for the user
+RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
+# Enable bash completion
+RUN echo "if [ -f /etc/bash_completion ]; then . /etc/bash_completion; fi" >> ~/.bashrc
+# Setup workspace sourcing if it exists
+RUN echo "if [ -f /workspace/install/local_setup.bash ]; then source /workspace/install/local_setup.bash; fi" >> ~/.bashrc

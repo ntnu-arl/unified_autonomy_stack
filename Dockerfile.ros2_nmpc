@@ -1,0 +1,174 @@
+# Neural Network Container with ROS 2 Humble
+# Base: Custom PyTorch base image
+# Purpose: Run PyTorch inference for collision_predictor_mpc with ROS 2 integration
+
+FROM unified_autonomy:ros2_cuda
+
+# Prevent interactive prompts
+ENV DEBIAN_FRONTEND=noninteractive
+
+# ============================================================================
+# STAGE 2: Additional Python Dependencies
+# ============================================================================
+
+# Fix NumPy compatibility issue with PyTorch
+RUN pip3 install "numpy>=1.24,<2.0"
+
+# Install basic Python dependencies
+RUN pip3 install "scipy>=1.10.1"
+RUN pip3 install "casadi>=3.5.0"
+RUN pip3 install "torchinfo>=1.8.0"
+RUN pip3 install "pillow>=9.0.0"
+RUN pip3 install "pyyaml>=5.4.1"
+RUN pip3 install "h5py>=3.9.0"
+
+# Install remaining Python dependencies
+RUN pip3 install "warp-lang==1.3.2"
+
+# ============================================================================
+# STAGE 3: l4casadi Installation
+# ============================================================================
+
+# Install l4casadi build dependencies
+RUN pip3 install --upgrade packaging setuptools scikit-build cmake ninja
+
+# Install l4casadi (PyTorch is now available from base image)
+RUN CMAKE_ARGS="-DCMAKE_POLICY_VERSION_MINIMUM=3.5" \
+    pip3 install l4casadi==1.4.1 --no-build-isolation
+# RUN pip3 install l4casadi==1.4.1 --no-build-isolation
+# RUN cd /tmp && \
+#     pip3 download --no-deps l4casadi==1.4.1 && \
+#     tar -xzf l4casadi-1.4.1.tar.gz && \
+#     cd l4casadi-1.4.1 && \
+#     find . -name "CMakeLists.txt" -exec sed -i '/cmake_minimum_required/d' {} \; && \
+#     python3 setup.py install && \
+#     cd /tmp && \
+#     rm -rf l4casadi-1.4.1 l4casadi-1.4.1.tar.gz
+
+# RUN cd /tmp && \
+#     pip3 download --no-deps l4casadi==1.4.1 && \
+#     tar -xzf l4casadi-1.4.1.tar.gz && \
+#     cd l4casadi-1.4.1 && \
+#     find . -name "CMakeLists.txt" -exec sed -i 's/cmake_minimum_required(VERSION [0-9.]*)/cmake_minimum_required(VERSION 3.10)/' {} \; && \
+#     python3 -c "import torch; print('PyTorch available:', torch.__version__)" && \
+#     python3 setup.py build && \
+#     python3 setup.py install && \
+#     cd /tmp && \
+#     rm -rf l4casadi-1.4.1 l4casadi-1.4.1.tar.gz
+
+# ============================================================================
+# STAGE 4: acados Installation (x86_64)
+# ============================================================================
+
+# Create developer user
+RUN groupadd --gid 1000 developer && \
+    useradd --uid 1000 --gid 1000 -m developer && \
+    echo developer ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/developer && \
+    chmod 0440 /etc/sudoers.d/developer
+
+WORKDIR /home/developer
+USER root
+
+# Clone and prepare acados
+RUN git clone https://github.com/acados/acados.git && \
+    cd acados && \
+    git checkout v0.3.1 && \
+    git submodule update --recursive --init
+
+# Build and install acados
+RUN cd /home/developer/acados && \
+    mkdir -p build && \
+    cd build && \
+    cmake -DACADOS_WITH_QPOASES=ON \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+          -DACADOS_WITH_OPENMP=ON .. && \
+    make install -j$(nproc)
+
+# Set acados environment variables
+ENV ACADOS_BASE=/home/developer/acados
+ENV ACADOS_SOURCE_DIR=/home/developer/acados
+ENV LD_LIBRARY_PATH=${ACADOS_BASE}/lib:${LD_LIBRARY_PATH}
+
+# Install acados Python interface
+RUN pip3 install -e ${ACADOS_SOURCE_DIR}/interfaces/acados_template
+
+# ============================================================================
+# STAGE 5: User Configuration
+# ============================================================================
+
+COPY ./entrypoint.sh /
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
+
+RUN pip3 install platformdirs
+
+# Install Rust (needed for acados tera_renderer)
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+# Build tera_renderer natively
+RUN cd /home/developer && \
+    git clone https://github.com/acados/tera_renderer.git && \
+    cd tera_renderer && \
+    cargo build --verbose --release
+
+# Create bin directory in acados and symlink tera_renderer
+RUN mkdir -p /home/developer/acados/bin && \
+    ln -s /home/developer/tera_renderer/target/release/t_renderer /home/developer/acados/bin/t_renderer && \
+    chown -R developer:developer /home/developer/tera_renderer
+
+RUN apt-get update && apt-get install -y \
+    ros-humble-rviz2 \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && apt-get install -y \
+    # GStreamer installation as per https://gstreamer.freedesktop.org/documentation/installing/on-linux.html?gi-language=c#install-gstreamer-on-ubuntu-or-debian
+    libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-qt5 gstreamer1.0-pulseaudio \
+    # Additional ros-gst-bridge dependencies
+    libsoup2.4-dev \
+    libjson-glib-dev \
+    ros-humble-ament-cmake-clang-format \
+    ros-humble-osrf-testing-tools-cpp \
+    ros-humble-pcl-conversions \
+    apt-file \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-file update
+
+RUN apt-get update && apt-get install -y \
+    ros-humble-cv-bridge \
+    && rm -rf /var/lib/apt/lists/*
+
+# Switch to developer user
+USER developer
+WORKDIR /home/developer
+
+# Add acados and ROS 2 environment variables to bashrc
+RUN echo "" >> ~/.bashrc && \
+    echo "# ROS 2 Humble setup" >> ~/.bashrc && \
+    echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc && \
+    echo "" >> ~/.bashrc && \
+    echo "# Acados environment variables" >> ~/.bashrc && \
+    echo "export ACADOS_BASE=/home/developer/acados" >> ~/.bashrc && \
+    echo "export LD_LIBRARY_PATH=\$ACADOS_BASE/lib:\$LD_LIBRARY_PATH" >> ~/.bashrc && \
+    echo "export ACADOS_SOURCE_DIR=\$ACADOS_BASE" >> ~/.bashrc
+
+# Set working directory
+WORKDIR /workspace
+
+# Expose port for ZMQ communication (if needed later)
+EXPOSE 5555
+
+# Build information
+RUN echo "====================================" && \
+    echo "Image: nn-cuda-x86 (Neural Network + ROS 2)" && \
+    echo "Base: nn-cuda-base:latest" && \
+    echo "ROS 2: Humble Hawksbill" && \
+    echo "PyTorch: 2.1.0 with CUDA 11.8 (from base)" && \
+    echo "acados: v0.3.1 (x86_64)" && \
+    echo "l4casadi: 1.4.1" && \
+    echo "Purpose: Run collision_predictor_mpc" && \
+    echo "====================================" || true
+
+# Default command
+CMD ["bash"]

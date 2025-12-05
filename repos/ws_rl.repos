@@ -1,0 +1,9 @@
+repositories:
+  src/rl_nav:
+    type: git
+    url: git@github.com:ntnu-arl/rl_nav.git
+    version: dev/unified_autonomy_stack
+  src/ros2_numpy:
+    type: git
+    url: git@github.com:Box-Robotics/ros2_numpy.git
+    version: humble

@@ -1,0 +1,88 @@
+# Neural Network Container - Base Image
+# Base: NVIDIA CUDA 11.8 with cuDNN for Ubuntu 22.04
+# Purpose: Base image with PyTorch for collision_predictor_mpc
+
+FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04
+
+# Prevent interactive prompts
+ENV DEBIAN_FRONTEND=noninteractive
+
+# ============================================================================
+# STAGE 1: Locale Setup
+# ============================================================================
+
+# Set up locale
+RUN apt-get update && apt-get install -y \
+    locales \
+    && rm -rf /var/lib/apt/lists/* && \
+    locale-gen en_US en_US.UTF-8 && \
+    update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+
+ENV LANG=en_US.UTF-8
+ENV LC_ALL=en_US.UTF-8
+
+# ============================================================================
+# STAGE 2: Base Development Environment
+# ============================================================================
+
+RUN apt-get update && apt-get install -y \
+    # Base development tools
+    git \
+    vim \
+    nano \
+    wget \
+    curl \
+    sudo \
+    build-essential \
+    cmake \
+    pkg-config \
+    python3-pip \
+    python3-dev \
+    # Libraries for ML/control
+    libopenblas-dev \
+    libopenmpi-dev \
+    libomp-dev \
+    libhdf5-serial-dev \
+    hdf5-tools \
+    libhdf5-dev \
+    zlib1g-dev \
+    zip \
+    libjpeg8-dev \
+    liblapack-dev \
+    libblas-dev \
+    gfortran \
+    python3-h5py \
+    # Additional tools
+    libtool \
+    automake \
+    autoconf \
+    && rm -rf /var/lib/apt/lists/*
+
+# CUDA environment variables (already set by base image, but making explicit)
+ENV CUDA_HOME=/usr/local/cuda
+ENV PATH=/usr/local/cuda/bin:${PATH}
+ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:${LD_LIBRARY_PATH}
+
+# ============================================================================
+# STAGE 3: Python Environment Setup
+# ============================================================================
+
+# Upgrade pip and install build dependencies
+RUN pip3 install --upgrade pip setuptools wheel
+
+# Install Cython
+RUN pip3 install Cython
+
+# Install PyTorch 2.1 with CUDA 11.8
+RUN pip3 install torch==2.1.0 torchvision==0.16.0 --index-url https://download.pytorch.org/whl/cu118
+
+# Build information
+RUN echo "====================================" && \
+    echo "Image: nn-cuda-base (PyTorch Base)" && \
+    echo "Base: nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04" && \
+    echo "PyTorch: 2.1.0 with CUDA 11.8" && \
+    echo "Purpose: Base image for ROS2 + ML applications" && \
+    echo "====================================" || true
+
+# Default command
+CMD ["bash"]

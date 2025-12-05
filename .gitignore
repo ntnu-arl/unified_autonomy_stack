@@ -1,0 +1,4 @@
+workspaces/
+.vscode/**
+docker-compose.build_images.yml
+data/

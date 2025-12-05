@@ -1,0 +1,9 @@
+repositories:
+  src/mmwave_ti_ros:
+    type: git
+    url: https://git.ti.com/git/mmwave_radar/mmwave_ti_ros.git
+    version: 6323d2aed92548c963e73d2fb7ca2d3ffb972827
+  src/serial:
+    type: git
+    url: git@github.com:ntnu-arl/serial.git
+    version: main

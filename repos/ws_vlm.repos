@@ -1,0 +1,5 @@
+repositories:
+  src/detection_vlm:
+    type: git
+    url: git@github.com:ntnu-arl/detection_vlm.git
+    version: ros2_humble

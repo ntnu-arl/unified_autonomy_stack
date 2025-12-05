@@ -1,0 +1,9 @@
+repositories:
+  src/cbf_pc_selector:
+    type: git
+    url: git@github.com:ntnu-arl/cbf_pc_selector.git
+    version: b2cbee81239e741eb5438b3fd5c03798956eb6d1
+  src/composite_cbf:
+    type: git
+    url: git@github.com:ntnu-arl/composite_cbf.git
+    version: 33ba2569645ecf29b4f51bd7bd96fc13aa460fc3

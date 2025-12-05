@@ -1,0 +1,17 @@
+repositories:
+  src/dome_lidar_processor:
+    type: git
+    url: git@github.com:ntnu-arl/dome_lidar_processor.git
+    version: d181a3409063e0a33fc802daf17bc134c3afce70
+  src/mav_comm:
+    type: git
+    url: git@github.com:ethz-asl/mav_comm.git
+    version: abc21fbafb6d8c924ceba013a48425bd0292ee9b
+  src/sdf-nmpc:
+    type: git
+    url: git@github.com:ntnu-arl/sdf-nmpc.git
+    version: 8106cdda989375120cc4859c70af23029ec01257
+  src/sdf_nmpc_ros:
+    type: git
+    url: git@github.com:ntnu-arl/sdf_nmpc_ros.git
+    version: 28c1c57ecd66bfa49c44d09622fdd9916f2adb30

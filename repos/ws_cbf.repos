@@ -1,0 +1,9 @@
+repositories:
+  src/cbf_pc_selector:
+    type: git
+    url: git@github.com:ntnu-arl/cbf_pc_selector.git
+    version: main
+  src/composite_cbf:
+    type: git
+    url: git@github.com:ntnu-arl/composite_cbf.git
+    version: dev/unified_autonomy_stack

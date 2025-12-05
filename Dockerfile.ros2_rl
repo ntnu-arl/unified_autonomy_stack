@@ -1,0 +1,46 @@
+# Neural Network Container with ROS 2 Humble
+# Base: Custom PyTorch base image
+# Purpose: Run PyTorch inference for collision_predictor_mpc with ROS 2 integration
+
+FROM unified_autonomy:ros2_cuda
+
+# Prevent interactive prompts
+ENV DEBIAN_FRONTEND=noninteractive
+
+# ============================================================================
+# STAGE 2: Additional Python Dependencies
+# ============================================================================
+
+RUN pip3 install "gymnasium==0.28.0"
+RUN pip3 install "sample-factory==2.1.1"
+
+RUN python3 -m pip install scipy matplotlib
+# RUN pip3 install "setuptools==59.6.0" --break-system-packages
+RUN pip3 install ros2-numpy
+
+RUN pip3 install "numpy==1.23"
+
+
+# Entrypoint setup (as root)
+COPY ./entrypoint.sh /
+RUN chmod +x /entrypoint.sh
+
+# Create developer user
+RUN groupadd --gid 1000 developer && \
+    useradd --uid 1000 --gid 1000 -m developer && \
+    echo developer ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/developer && \
+    chmod 0440 /etc/sudoers.d/developer
+
+# Switch to developer user
+USER developer
+WORKDIR /home/developer
+
+# User-level configurations
+RUN echo "if [ -f /etc/bash_completion ]; then . /etc/bash_completion; fi" >> ~/.bashrc
+RUN rosdep update
+
+ENV SHELL=/bin/bash
+EXPOSE 5555
+
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["bash"]

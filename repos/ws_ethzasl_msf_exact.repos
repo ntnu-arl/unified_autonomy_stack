@@ -1,0 +1,5 @@
+repositories:
+  src/ethzasl_msf:
+    type: git
+    url: git@github.com:ntnu-arl/ethzasl_msf.git
+    version: 5dd24d88ae7b7c83ee37e66ad0185c6081dfd988

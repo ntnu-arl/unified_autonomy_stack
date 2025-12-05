@@ -1,0 +1,5 @@
+repositories:
+  src/ros-gst-bridge:
+    type: git
+    url: git@github.com:ntnu-arl/ros-gst-bridge.git
+    version: dev/compressed_support

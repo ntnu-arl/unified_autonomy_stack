@@ -1,0 +1,13 @@
+repositories:
+  src/rmf_gz:
+    type: git
+    url: git@github.com:ntnu-arl/rmf_gz.git
+    version: 1bc88f71f4e36c9bd2571811fad43ac76fd69ea7
+  src/subt_cave_sim:
+    type: git
+    url: git@github.com:ntnu-arl/subt_cave_sim.git
+    version: e9e3e7d2061441b1250000ba3c8c57cd9c73d6d2
+  src/ugv_gz:
+    type: git
+    url: git@github.com:ntnu-arl/ugv_gz.git
+    version: c8b48e97dd4dc8ade46ec39788d3f0a8b3097355

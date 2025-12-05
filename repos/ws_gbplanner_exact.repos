@@ -1,0 +1,89 @@
+repositories:
+  src/exploration/BehaviorTree.CPP:
+    type: git
+    url: git@github.com:ntnu-arl/BehaviorTree.CPP.git
+    version: d1983e6272d8679724720f687be22f6d0240ef34
+  src/exploration/adaptive_obb_ros:
+    type: git
+    url: git@github.com:ntnu-arl/adaptive_obb_ros.git
+    version: 7a6a9f244ec35800808cb4610931f09c1ff8c4a8
+  src/exploration/gbplanner_ros:
+    type: git
+    url: git@github.com:ntnu-arl/gbplanner_ros.git
+    version: 7b10f8f49c6064a24909efa9871b51e74ff8d3ed
+  src/exploration/manhole_detector_ros:
+    type: git
+    url: git@github.com:ntnu-arl/manhole_detector_ros.git
+    version: 61184802cf6e7ce009ab5a764a15ac0786e48a91
+  src/exploration/pci_general:
+    type: git
+    url: git@github.com:ntnu-arl/pci_general.git
+    version: 1e5f5c633476737b568dc922c9359e9e872fed0d
+  src/mapping/elevation_mapping:
+    type: git
+    url: git@github.com:ANYbotics/elevation_mapping.git
+    version: f4b082c64a3e660980da53b33c7936a8f2a2ea22
+  src/mapping/grid_map:
+    type: git
+    url: git@github.com:ANYbotics/grid_map.git
+    version: c91cd28f6def0eba93433b1ed2b4a04877b277f7
+  src/mapping/voxblox:
+    type: git
+    url: git@github.com:ntnu-arl/voxblox.git
+    version: d1db0e19049fb441655eddefcdba9c9af596ead7
+  src/misc/catkin_boost_python_buildtool:
+    type: git
+    url: git@github.com:ethz-asl/catkin_boost_python_buildtool.git
+    version: c8ea6e25bc5d98772d57b2ffd7619973952a6839
+  src/misc/catkin_simple:
+    type: git
+    url: git@github.com:catkin/catkin_simple.git
+    version: 0e62848b12da76c8cc58a1add42b4f894d1ac21e
+  src/misc/eigen_catkin:
+    type: git
+    url: git@github.com:ethz-asl/eigen_catkin.git
+    version: 3323b388540fa95ec9da6f9cd887f70ead055edb
+  src/misc/eigen_checks:
+    type: git
+    url: git@github.com:ethz-asl/eigen_checks.git
+    version: 22a6247a3df11bc285d43d1a030f4e874a413997
+  src/misc/gflags_catkin:
+    type: git
+    url: git@github.com:ethz-asl/gflags_catkin.git
+    version: fc38fc525f7d48881aebb27a7b9978453556bbd4
+  src/misc/glog_catkin:
+    type: git
+    url: git@github.com:ethz-asl/glog_catkin.git
+    version: 40a9edadd15c59f8b57dc947d0135b0a007ea10b
+  src/misc/image_transport_plugins:
+    type: git
+    url: https://github.com/ros-perception/image_transport_plugins.git
+    version: cae592ce0816ea03bc38f0b6d27b6eae907feb10
+  src/misc/kindr:
+    type: git
+    url: git@github.com:ANYbotics/kindr.git
+    version: 32800890d546e306f73c3ee3091fb6903452f925
+  src/misc/kindr_ros:
+    type: git
+    url: git@github.com:ANYbotics/kindr_ros.git
+    version: 8d60e3f8df5ddd8bcc58db3072edbb651f286b32
+  src/misc/mav_comm:
+    type: git
+    url: git@github.com:ethz-asl/mav_comm.git
+    version: 56122218eb1ec34deaa641598ebacf24e26c349b
+  src/misc/message_logger:
+    type: git
+    url: git@github.com:ANYbotics/message_logger.git
+    version: 856c064447d1cee861f2fcc8399446bf50d37f0e
+  src/misc/minkindr:
+    type: git
+    url: git@github.com:ethz-asl/minkindr.git
+    version: 564f12639a8447d4d3e5e7707851424302941056
+  src/misc/minkindr_ros:
+    type: git
+    url: git@github.com:ethz-asl/minkindr_ros.git
+    version: 5528b042124fe056a7cf53f96c8b39e1e32ec2b9
+  src/misc/numpy_eigen:
+    type: git
+    url: git@github.com:ethz-asl/numpy_eigen.git
+    version: f63b1dfe3b0a1ee21138caa1dcedd32c7f0411d9

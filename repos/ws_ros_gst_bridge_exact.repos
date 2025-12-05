@@ -1,0 +1,5 @@
+repositories:
+  src/ros-gst-bridge:
+    type: git
+    url: git@github.com:ntnu-arl/ros-gst-bridge.git
+    version: a8d713760f6acfdb6f663ad838a519e0e8633810

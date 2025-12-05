@@ -1,0 +1,5 @@
+repositories:
+  src/vectornav:
+    type: git
+    url: git@github.com:ntnu-arl/vectornav.git
+    version: 295d2b132e0b8cc14299a5300d5da8db2953b4b1

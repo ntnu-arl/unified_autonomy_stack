@@ -1,0 +1,91 @@
+site_name: Unified Autonomy Stack
+site_description: Comprehensive documentation for the Unified Autonomy Stack covering SLAM, Planning, Navigation, Control, and Robots.
+site_author: Autonomous Robots Lab, NTNU
+repo_url: https://github.com/ntnu-arl/unified_autonomy_stack
+repo_name: ntnu-arl/unified_autonomy_stack
+copyright: Rights reserved with the Autonomous Robots Lab, NTNU
+
+theme:
+  name: material
+  favicon: figures/arl_logo.png
+  logo: figures/arl_logo.png
+  palette:
+    - scheme: slate
+      primary: deep orange
+      accent: blue
+      toggle:
+        icon: material/brightness-2
+        name: Switch to light mode
+    - scheme: default
+      primary: green
+      accent: teal
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+  features:
+    - navigation.tabs
+    - navigation.footer
+    - navigation.top
+    - navigation.expand
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+  icon:
+    repo: fontawesome/brands/github
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: installation.md
+    - Deployment: deployment.md
+    - Examples: examples.md
+  - System Overview:
+    - Architecture: architecture.md
+    - Perception Module:
+      - Multi-Modal SLAM: slam.md
+      - VLM: vlm.md
+    - Planning Module:
+      - Planning: planning.md
+    - Navigation Module:
+      - Navigation Architecture: navigation.md
+      - Neural SDF-MPC: nmpc.md
+      - Deep RL for Navigation: rl.md
+      - Composite CBF Safety Filter: cbf.md
+    - Simulation and Hardware:
+      - Simulation: simulation.md
+      - Platforms: platforms.md
+      - Hardware and Drivers: hardware.md
+  - Evaluation:
+    - Prior Results: prior_results.md
+    - Indicative Results: indicative_results.md
+    - Datasets: datasets.md
+  - Planned Upgrades: planned_upgrades.md
+  - Technical Report: report/UnifiedAutonomyStack-Outline.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.arithmatex:
+      generic: true
+  - attr_list
+  - md_in_html
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+extra_css:
+  - stylesheets/extra.css
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js

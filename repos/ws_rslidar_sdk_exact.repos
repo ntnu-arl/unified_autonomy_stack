@@ -1,0 +1,5 @@
+repositories:
+  src/rslidar_sdk:
+    type: git
+    url: git@github.com:ntnu-arl/rslidar_sdk.git
+    version: bb8c7952c03e0c9f64bfd071d015213d9ba84c74
