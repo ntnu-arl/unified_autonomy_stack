@@ -1,10 +1,7 @@
 # Unified Autonomy Stack
 
 Welcome to the documentation for the **Unified Autonomy Stack**. 
-This stack presents an autonomy architecture integrating perception, planning, and navigation algorithms developed and field tested at the <img src="figures/arl_logo.png" alt="ARL Logo" style="height: 1.5em; middle;"> [Autonomous Robots Lab](https://www.autonomousrobotslab.com) across robot configurations. The stack consists of the software for the core algorithms along with drivers, utilities, and tools for simulation and testing.
-<!-- This stack is a complete set of software and packages for enabling autonomy across robots, capable of running on both ROS and ROS 2. The stack consists of packages featuring advanced algorithms for perception, planning, and control, in addition to drivers, utilities, and tools for simulation and testing used at the <img src="figures/arl_logo.png" alt="ARL Logo" style="height: 1.5em; middle;"> [Autonomous Robots Lab](https://www.autonomousrobotslab.com). We currently support a wide range of robot types including aerial, ground and underwater systems and the Unified Autonomy Stack will be continuously updated to support different robot morphologies across air, land, and sea.  -->
-We currently support multirotor and ground systems with extension to other systems, such as underwater robots, coming soon.
-The software distributed as a part of this stack has been thoroughly tested in real-world scenarios demonstrating robust autonomous operation in challenging GPS-denied environments.
+This stack presents an autonomy architecture integrating perception, planning, and navigation algorithms developed and field tested at the <img src="figures/arl_logo.png" alt="ARL Logo" style="height: 1.5em; middle;"> [Autonomous Robots Lab](https://www.autonomousrobotslab.com) across robot configurations. The stack consists of the software for the core algorithms along with drivers, utilities, and tools for simulation and testing. We currently support multirotor and ground systems with extension to other systems, such as underwater robots, coming soon. The software distributed as a part of this stack has been thoroughly tested in real-world scenarios demonstrating robust autonomous operation in challenging GPS-denied environments.
 
 ![Unified Autonomy Stack Landing Image](report/figs/merged-multi-domain-photo.jpg)
 

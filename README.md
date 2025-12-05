@@ -1,76 +1,23 @@
 # Unified Autonomy Stack
 
-Warning: This repository is under active development and will be updated frequently.
+Welcome to the documentation for the **Unified Autonomy Stack**. 
+This stack presents an autonomy architecture integrating perception, planning, and navigation algorithms developed and field tested at the [Autonomous Robots Lab](https://www.autonomousrobotslab.com) across robot configurations. The stack consists of the software for the core algorithms along with drivers, utilities, and tools for simulation and testing. We currently support multirotor and ground systems with extension to other systems, such as underwater robots, coming soon. The software distributed as a part of this stack has been thoroughly tested in real-world scenarios demonstrating robust autonomous operation in challenging GPS-denied environments.
 
-## Setup
+![Unified Autonomy Stack Landing Image](docs/report/figs/merged-multi-domain-photo.jpg)
 
-- Install Docker Engine on your machine. Follow the instructions for your system [from Docker's official documentation](https://docs.docker.com/engine/install/). Make sure that you do the [linux post-install](https://docs.docker.com/engine/install/linux-postinstall) steps to run docker as a non-root user.
+## Documentation
 
-> **_NOTE:_**  For Orin NX on Jetpack 6.X there exists a known issue with Docker Engine as mentioned [here](https://forums.developer.nvidia.com/t/iptables-error-message/333007). The workaround is to do: `sudo apt-get install -y docker-ce=5:27.5* docker-ce-cli=5:27.5* --allow-downgrades && sudo apt-mark hold docker-ce docker-ce-cli`
+The documentation of the Unified Autonomy Stack is available at [https://ntnu-arl.github.io/unified_autonomy_stack/](https://ntnu-arl.github.io/unified_autonomy_stack/).
 
-- Setup the NVIDIA Container Toolkit if you have an NVIDIA GPU. Follow the instructions for your system [from NVIDIA's official documentation](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html). For Ubuntu based systems you can follow the steps at <https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#with-apt-ubuntu-debian>. Then you need to configure the Docker Daemon as per instructions <https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#configuring-docker> . You do not need Rootless mode for this stack.
-
-- Get this repository:
-
-  ```bash
-  git clone git@github.com:ntnu-arl/unified_autonomy_stack.git
-  cd unified_autonomy_stack
-  ```
-
-- Install [`vcstool`](https://github.com/dirk-thomas/vcstool/)
-- Make the scripts executable and import repositories:
-
-  ```bash
-  chmod +x ./scripts/*.sh
-  ./scripts/import_all_repos.sh
-  ```
-
-## Development Workflow
-
-The stack uses a Makefile to manage common development tasks. To see all available commands:
-
-```bash
-make help
-```
-
-### Quick Start
-
-```bash
-make images     # Build Docker images - Will take a long time the first time
-make build      # Build all code workspaces - Will take a long time the first time
-make launch     # Launch the stack
-```
-
-## Adding new packages
-
-To add your own package to the stack:
-
-1. Create a new `ws_<your_package_name>` folder in the `workspaces` directory
-2. Add your package and dependencies to `ws_<your_package_name>/src`
-3. Add build and launch services to `docker-compose.yml`
-4. If you need a different dockerfile, create it and reference it in `docker-bake.hcl`
-
-## Version Control
-
-Use vcs to manage repository versions. After making changes:
-
-```bash
-./scripts/export_all_repos.sh
-```
-
-This exports exact versions of all repositories to track the working state of the stack.
-
-## Cite
-
-If you use this code in your research, please cite:
-
-<TODO>
 
 ## Contact
 
-For questions, please open an issue or contact:
-
-- [Nikhil Khedekar](mailto:nikhil.v.khedekar@ntnu.no)
-- [Mihir Dharmadhikari](mailto:mihir.dharmadhikari@ntnu.no)
-
-<TODO>
+- Mihir Dharmadhikari: [mihir.dharmadhikari@ntnu.no](mailto:mihir.dharmadhikari@ntnu.no)
+- Nikhil Khedekar: [nikhil.v.khedekar@ntnu.no](mailto:nikhil.v.khedekar@ntnu.no)
+- Mihir Kulkarni: [mihir.kulkarni@ntnu.no](mailto:mihir.kulkarni@ntnu.no)
+- Morten Nissov: [morten.nissov@ntnu.no](mailto:morten.nissov@ntnu.no)
+- Angelos Zacharia: [angelos.zacharia@ntnu.no](mailto:angelos.zacharia@ntnu.no)
+- Martin Jacquet: [martin.jacquet@ntnu.no](mailto:martin.jacquet@ntnu.no)
+- Albert Gassol Puigjaner : [albert.g.puigjaner@ntnu.no](mailto:albert.g.puigjaner@ntnu.no)
+- Philipp Weiss: [philipp.weiss@ntnu.no](mailto:philipp.weiss@ntnu.no)
+- Kostas Alexis: [konstantinos.alexis@ntnu.no](mailto:konstantinos.alexis@ntnu.no)
