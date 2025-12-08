@@ -2,4 +2,4 @@ repositories:
   src/detection_vlm:
     type: git
     url: git@github.com:ntnu-arl/detection_vlm.git
-    version: ffd27f01ede2857efb46adbb26cfaf40d9fb1f05
+    version: 592b48f20ecae112e621fcd3e39e497cf3186006
