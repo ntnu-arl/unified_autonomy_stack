@@ -16,7 +16,7 @@ help: ## Show this help message
 .PHONY: images
 
 images: ## Build all Docker images
-	@docker buildx bake
+	@docker buildx bake --allow=network.host
 
 # ==================== CODE BUILDING ====================
 .PHONY: build build-% build-sequential
