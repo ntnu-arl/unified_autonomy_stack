@@ -1,8 +1,7 @@
-# Neural Network Container with ROS 2 Humble
-# Base: Custom PyTorch base image
+# Base: Dusty-NV's L4T PyTorch image - has PyTorch + all CUDA libs pre-configured
 # Purpose: Run PyTorch inference for collision_predictor_mpc with ROS 2 integration
 
-FROM unified_autonomy:cuda_pytorch
+FROM dustynv/l4t-pytorch:r36.2.0
 
 # Prevent interactive prompts
 ENV DEBIAN_FRONTEND=noninteractive

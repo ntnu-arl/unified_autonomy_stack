@@ -127,14 +127,14 @@ services:
   # ==================== SIMULATION ====================
 
   # --- Simulation ---
-  build_sim:
-    <<: [*colcon-build-template]
-    image: unified_autonomy:ros2_sim
-    command: colcon build --cmake-force-configure --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
-    volumes:
-      - *x11-volume
-      - *robot-bringup-volume
-      - ./workspaces/ws_sim:/workspace
+  # build_sim:
+  #   <<: [*colcon-build-template]
+  #   image: unified_autonomy:ros2_sim
+  #   command: colcon build --cmake-force-configure --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
+  #   volumes:
+  #     - *x11-volume
+  #     - *robot-bringup-volume
+  #     - ./workspaces/ws_sim:/workspace
 
   # ==================== PERCEPTION ====================
 
@@ -158,22 +158,22 @@ services:
       - ./workspaces/ws_ethzasl_msf:/workspace
 
   # --- VLM ---
-  build_vlm:
-    <<: [*colcon-build-template]
-    image: unified_autonomy:ros2_vlm
-    runtime: nvidia
-    # command: bash -c "source /home/developer/detection_vlm_venv/bin/activate && colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release"
-    volumes:
-      - *x11-volume
-      - *robot-bringup-volume
-      - ./workspaces/ws_vlm:/workspace
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
+  # build_vlm:
+  #   <<: [*colcon-build-template]
+  #   image: unified_autonomy:ros2_vlm
+  #   runtime: nvidia
+  #   # command: bash -c "source /home/developer/detection_vlm_venv/bin/activate && colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release"
+  #   volumes:
+  #     - *x11-volume
+  #     - *robot-bringup-volume
+  #     - ./workspaces/ws_vlm:/workspace
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: all
+  #             capabilities: [gpu]
 
   # # # ==================== NMPC ====================
 

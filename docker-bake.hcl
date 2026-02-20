@@ -3,7 +3,7 @@ variable "REGISTRY" {
 }
 
 group "default" {
-  targets = ["ros1_base", "ros2_base", "ros1_gbplanner", "ros2_sim", "cuda_pytorch", "ros2_cuda", "ros2_nmpc", "ros2_cbf", "ros1-bridge-builder", "ros2_ros1_bridge", "ros2_rl", "ros2_vlm"]
+  targets = ["ros1_base", "ros2_base", "ros1_gbplanner", "ros2_cuda", "ros2_nmpc", "ros2_cbf", "ros1-bridge-builder", "ros2_ros1_bridge", "ros2_rl"]
 }
 
 target "default" {
@@ -54,31 +54,11 @@ target "ros1_gbplanner" {
   network = "host"
 }
 
-target "ros2_sim" {
-  context    = "."
-  dockerfile = "Dockerfile.ros2_sim"
-  tags       = ["${REGISTRY}:ros2_sim"]
-  contexts   = {
-    "unified_autonomy:ros2_base" = "target:ros2_base"
-  }
-  network = "host"
-}
-
-target "cuda_pytorch" {
-  context    = "."
-  dockerfile = "Dockerfile.cuda_pytorch"
-  tags       = ["${REGISTRY}:cuda_pytorch"]
-  network = "host"
-}
-
 target "ros2_cuda" {
   context    = "."
   dockerfile = "Dockerfile.ros2_cuda"
   tags       = ["${REGISTRY}:ros2_cuda"]
   network = "host"
-  contexts   = {
-    "unified_autonomy:cuda_pytorch" = "target:cuda_pytorch"
-  }
 }
 
 target "ros2_nmpc" {
@@ -109,14 +89,4 @@ target "ros2_cbf" {
     "unified_autonomy:ros2_base" = "target:ros2_base"
   }
   network = "host"
-}
-
-target "ros2_vlm" {
-  context    = "."
-  dockerfile = "Dockerfile.ros2_vlm"
-  tags       = ["${REGISTRY}:ros2_vlm"]
-  network = "host"
-  contexts   = {
-    "unified_autonomy:ros2_base" = "target:ros2_base"
-  }
 }

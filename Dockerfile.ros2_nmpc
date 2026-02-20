@@ -8,6 +8,34 @@ FROM unified_autonomy:ros2_cuda
 ENV DEBIAN_FRONTEND=noninteractive
 
 # ============================================================================
+# FIX: Override pip index to use standard PyPI
+# ============================================================================
+ENV PIP_INDEX_URL=https://pypi.org/simple
+ENV PIP_EXTRA_INDEX_URL=""
+ENV PIP_TRUSTED_HOST=""
+
+# Alternative: Create/override pip config
+RUN mkdir -p /root/.config/pip && \
+    echo "[global]" > /root/.config/pip/pip.conf && \
+    echo "index-url = https://pypi.org/simple" >> /root/.config/pip/pip.conf && \
+    echo "timeout = 60" >> /root/.config/pip/pip.conf
+
+# CUDA should already be available from the base image
+# Verify paths
+ENV CUDA_HOME=/usr/local/cuda
+ENV PATH=/usr/local/cuda/bin:${PATH}
+ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:${LD_LIBRARY_PATH}
+
+# Install Rust (needed for acados tera_renderer)
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+
+# Upgrade pip and install build dependencies
+RUN pip3 install --upgrade pip setuptools wheel
+
+# Install Cython
+RUN pip3 install Cython
+
+# ============================================================================
 # STAGE 2: Additional Python Dependencies
 # ============================================================================
 
@@ -26,38 +54,7 @@ RUN pip3 install "h5py>=3.9.0"
 RUN pip3 install "warp-lang==1.3.2"
 
 # ============================================================================
-# STAGE 3: l4casadi Installation
-# ============================================================================
-
-# Install l4casadi build dependencies
-RUN pip3 install --upgrade packaging setuptools scikit-build cmake ninja
-
-# Install l4casadi (PyTorch is now available from base image)
-RUN CMAKE_ARGS="-DCMAKE_POLICY_VERSION_MINIMUM=3.5" \
-    pip3 install l4casadi==1.4.1 --no-build-isolation
-# RUN pip3 install l4casadi==1.4.1 --no-build-isolation
-# RUN cd /tmp && \
-#     pip3 download --no-deps l4casadi==1.4.1 && \
-#     tar -xzf l4casadi-1.4.1.tar.gz && \
-#     cd l4casadi-1.4.1 && \
-#     find . -name "CMakeLists.txt" -exec sed -i '/cmake_minimum_required/d' {} \; && \
-#     python3 setup.py install && \
-#     cd /tmp && \
-#     rm -rf l4casadi-1.4.1 l4casadi-1.4.1.tar.gz
-
-# RUN cd /tmp && \
-#     pip3 download --no-deps l4casadi==1.4.1 && \
-#     tar -xzf l4casadi-1.4.1.tar.gz && \
-#     cd l4casadi-1.4.1 && \
-#     find . -name "CMakeLists.txt" -exec sed -i 's/cmake_minimum_required(VERSION [0-9.]*)/cmake_minimum_required(VERSION 3.10)/' {} \; && \
-#     python3 -c "import torch; print('PyTorch available:', torch.__version__)" && \
-#     python3 setup.py build && \
-#     python3 setup.py install && \
-#     cd /tmp && \
-#     rm -rf l4casadi-1.4.1 l4casadi-1.4.1.tar.gz
-
-# ============================================================================
-# STAGE 4: acados Installation (x86_64)
+# STAGE 5: acados Installation (ARM-native)
 # ============================================================================
 
 # Create developer user
@@ -69,11 +66,25 @@ RUN groupadd --gid 1000 developer && \
 WORKDIR /home/developer
 USER root
 
+ENV PATH="/root/.cargo/bin:${PATH}"
+
 # Clone and prepare acados
 RUN git clone https://github.com/acados/acados.git && \
     cd acados && \
     git checkout v0.3.1 && \
-    git submodule update --recursive --init
+    git submodule update --recursive --init && \
+    find . -name "CMakeLists.txt" -exec sed -i 's/cmake_minimum_required(VERSION [0-9.]*)/cmake_minimum_required(VERSION 3.10)/' {} \;
+
+# Build tera_renderer natively for ARM
+RUN cd /home/developer && \
+    git clone https://github.com/acados/tera_renderer.git && \
+    cd tera_renderer && \
+    cargo build --verbose --release
+
+# Create bin directory in acados and symlink tera_renderer
+RUN mkdir -p /home/developer/acados/bin && \
+    ln -s /home/developer/tera_renderer/target/release/t_renderer /home/developer/acados/bin/t_renderer && \
+    chown -R developer:developer /home/developer/tera_renderer
 
 # Build and install acados
 RUN cd /home/developer/acados && \
@@ -93,33 +104,21 @@ ENV LD_LIBRARY_PATH=${ACADOS_BASE}/lib:${LD_LIBRARY_PATH}
 # Install acados Python interface
 RUN pip3 install -e ${ACADOS_SOURCE_DIR}/interfaces/acados_template
 
-# ============================================================================
-# STAGE 5: User Configuration
-# ============================================================================
+# Install l4casadi (for interfacing PyTorch with CasADi)
+# NOTE: Cannot install during build because it requires CUDA libraries at import time
+# Installing via entrypoint script that runs at container startup with --runtime nvidia
 
-COPY ./entrypoint.sh /
-RUN chmod +x /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
+RUN pip3 install l4casadi==1.4.1 --no-build-isolation
 
-RUN pip3 install platformdirs
+# Create directory for persistent pip packages
+RUN mkdir -p /opt/pip-packages
 
-# Install Rust (needed for acados tera_renderer)
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
-ENV PATH="/root/.cargo/bin:${PATH}"
 
-# Build tera_renderer natively
-RUN cd /home/developer && \
-    git clone https://github.com/acados/tera_renderer.git && \
-    cd tera_renderer && \
-    cargo build --verbose --release
-
-# Create bin directory in acados and symlink tera_renderer
-RUN mkdir -p /home/developer/acados/bin && \
-    ln -s /home/developer/tera_renderer/target/release/t_renderer /home/developer/acados/bin/t_renderer && \
-    chown -R developer:developer /home/developer/tera_renderer
+# Declare volume (optional - use this to persist l4casadi across runs)
+VOLUME ["/opt/pip-packages"]
 
 RUN apt-get update && apt-get install -y \
-    ros-humble-rviz2 \
+    ros-humble-cv-bridge \
     && rm -rf /var/lib/apt/lists/*
 
 RUN apt-get update && apt-get install -y \
@@ -135,9 +134,13 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/* \
     && apt-file update
 
-RUN apt-get update && apt-get install -y \
-    ros-humble-cv-bridge \
-    && rm -rf /var/lib/apt/lists/*
+# ============================================================================
+# STAGE 6: User Configuration
+# ============================================================================
+
+COPY ./entrypoint.sh /
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
 
 # Switch to developer user
 USER developer
@@ -161,12 +164,12 @@ EXPOSE 5555
 
 # Build information
 RUN echo "====================================" && \
-    echo "Image: nn-cuda-x86 (Neural Network + ROS 2)" && \
-    echo "Base: nn-cuda-base:latest" && \
+    echo "Image: nn-l4t-r36 (Neural Network + ROS 2)" && \
+    echo "Base: dustynv/l4t-pytorch:r36.2.0" && \
     echo "ROS 2: Humble Hawksbill" && \
-    echo "PyTorch: 2.1.0 with CUDA 11.8 (from base)" && \
-    echo "acados: v0.3.1 (x86_64)" && \
-    echo "l4casadi: 1.4.1" && \
+    echo "PyTorch: Pre-installed (dustynv)" && \
+    echo "acados: v0.3.1 with ARM tera_renderer" && \
+    echo "l4casadi: 1.4.1 (installed at runtime)" && \
     echo "Purpose: Run collision_predictor_mpc" && \
     echo "====================================" || true
 
