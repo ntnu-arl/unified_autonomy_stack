@@ -1,8 +1,4 @@
 repositories:
-  src/dome_lidar_processor:
-    type: git
-    url: git@github.com:ntnu-arl/dome_lidar_processor.git
-    version: ros2
   src/mav_comm:
     type: git
     url: git@github.com:ethz-asl/mav_comm.git

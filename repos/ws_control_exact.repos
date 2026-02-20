@@ -1,0 +1,9 @@
+repositories:
+  src/cbf_pc_selector:
+    type: git
+    url: git@github.com:ntnu-arl/cbf_pc_selector.git
+    version: 1466f82e3845f7625bf07a7ad6edc88ad343aec1
+  src/dome_lidar_processor:
+    type: git
+    url: git@github.com:ntnu-arl/dome_lidar_processor.git
+    version: 0ba08061decc6bf77d9adfffd4479c6eba5240d3
