@@ -20,7 +20,7 @@ x-x11-volume: &x11-volume
   /tmp/.X11-unix:/tmp/.X11-unix:rw
 
 x-robot-bringup-volume: &robot-bringup-volume
-  ./workspaces/ros1_launcher:/workspace/src/ros1_launcher:rw
+  ./workspaces/robot_bringup:/workspace/src/robot_bringup:rw
 
 x-recorded-data-volume: &recorded-data-volume
   ./data:/data:rw
@@ -65,26 +65,11 @@ services:
       timeout: 2s
       retries: 5
       start_period: 3s  # Give it time to start before checking
-
-  build_ros1_launcher:
-    <<: [*catkin-build-template]
-    image: unified_autonomy:ros1_base
-    volumes:
-      - ./workspaces/ws_ros1_launcher:/workspace
-      - *robot-bringup-volume
-
-  # --- ROS1 Bridge (ROS2) ---
-  build_ros1_bridge:
-    <<: [*colcon-build-template]
-    image: unified_autonomy:ros1-bridge-builder
-    command: sh -c "cat /ws_ros1_bridge.tgz | tar xzf - -C /workspaces"
-    volumes:
-      - ./workspaces:/workspaces
   
   ros1_launch_bridge_params:
     <<: [*ros1-launch-template]
     image: unified_autonomy:ros1_base
-    command: bash -c "roslaunch ros1_launcher bridge_params_uav_unipilot.launch"
+    command: bash -c "roslaunch robot_bringup bridge_params.launch config_file:=uav_unipilot"
     volumes:
       - *robot-bringup-volume
       - *recorded-data-volume
@@ -120,49 +105,33 @@ services:
 
   # Planner
   # --- GBPlanner ---
-  build_gbplanner:
-    <<: [*catkin-build-template]
-    image: unified_autonomy:ros1_gbplanner
-    volumes:
-      - *robot-bringup-volume
-      - ./workspaces/ws_gbplanner:/workspace
-
-  ros1_launch_gbplanner:
-    <<: [*ros1-launch-template]
-    image: unified_autonomy:ros1_gbplanner
-    command: roslaunch ros1_launcher gbplanner_uav_rl_sim.launch
-    privileged: true
-    volumes:
-      - *x11-volume
-      - *robot-bringup-volume
-      - ./workspaces/ws_gbplanner:/workspace
-    devices:
-      - /dev/dri:/dev/dri
-    deploy:  # Add this section
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
+  # ros1_launch_gbplanner:
+  #   <<: [*ros1-launch-template]
+  #   image: unified_autonomy:ros1_gbplanner
+  #   command: roslaunch robot_bringup gbplanner_sim.launch robot_name:=rmf_unipilot config_name:=uav_nmpc_unipilot_sim
+  #   privileged: true
+  #   volumes:
+  #     - *x11-volume
+  #     - *robot-bringup-volume
+  #     - ./workspaces/ws_gbplanner:/workspace
+  #   devices:
+  #     - /dev/dri:/dev/dri
+  #   deploy:  # Add this section
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: all
+  #             capabilities: [gpu]
 
   # ==================== SIMULATION ====================
 
   # --- Simulation ---
-  build_sim:
-    <<: [*colcon-build-template]
-    image: unified_autonomy:ros2_sim
-    command: colcon build --cmake-force-configure --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
-    volumes:
-      - *x11-volume
-      - *robot-bringup-volume
-      - ./workspaces/ws_sim:/workspace
-
   ros2_launch_uav_sim:
     <<: [*ros2-launch-template]
     image: unified_autonomy:ros2_sim
     runtime: nvidia
-    command: ros2 launch robot_bringup uav_sim_unipilot.launch.xml
+    command: ros2 launch robot_bringup uav_sim_unipilot_rl_nmpc_eval.launch.xml
     privileged: true
     volumes:
       - *x11-volume
@@ -182,60 +151,37 @@ services:
             - driver: nvidia
               count: all
               capabilities: [gpu]
-  
-  # ros2_launch_ugv_sim:
-  #   <<: [*ros2-launch-template]
-  #   image: unified_autonomy:ros2_sim
-  #   runtime: nvidia
-  #   command: ros2 launch robot_bringup ugv_sim.launch.xml
-  #   profiles: ["ugv"]
-  #   privileged: true
-  #   volumes:
-  #     - *x11-volume
-  #     - *robot-bringup-volume
-  #     - ./workspaces/ws_sim:/workspace
-  #   devices:
-  #     - /dev/dri:/dev/dri
-  #   environment:
-  #     - ROS_DOMAIN_ID=${DOMAIN_ID}
-  #     - DISPLAY=${DISPLAY}
-  #     - NVIDIA_VISIBLE_DEVICES=all
-  #     - NVIDIA_DRIVER_CAPABILITIES=all
-  #   deploy:
-  #     resources:
-  #       reservations:
-  #         devices:
-  #           - driver: nvidia
-  #             count: all
-  #             capabilities: [gpu]
-  
-  # # ==================== VLM ====================
-
-  # --- VLM ---
-  # build_vlm:
-  #   <<: [*catkin-build-template]
-  #   image: unified_autonomy:ros1_vlm
-  #   runtime: nvidia
-  #   volumes:
-  #     - *x11-volume
-  #     - *robot-bringup-volume
-  #     - ./workspaces/ws_vlm:/workspace
-
-  # ros1_launch_vlm:
-  #   <<: [*ros1-launch-template]
-  #   image: unified_autonomy:ros1_vlm
-  #   runtime: nvidia
-  #   command: roslaunch ros1_launcher reasoning_vlm.launch
-  #   volumes:
-  #     - *x11-volume
-  #     - *robot-bringup-volume
-  #     - ./workspaces/ws_vlm:/workspace
 
 
-  # # # ==================== RL ====================
-  ros2_launch_rl:
+  # # # ==================== NMPC ====================
+
+  # # --- NMPC colcon build ---
+  ros2_launch_nmpc:
     <<: *ros2-launch-template
-    image: unified_autonomy:ros2_rl
+    image: unified_autonomy:ros2_nmpc
+    runtime: nvidia
+    environment:
+      - DISPLAY=${DISPLAY}
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      - QT_X11_NO_MITSHM=1
+      - PYTHONPATH=/workspace/src/sdf-nmpc:/home/developer/acados/interfaces/acados_template:${PYTHONPATH}
+      - ACADOS_SOURCE_DIR=/home/developer/acados
+      - LD_LIBRARY_PATH=/usr/local/lib:/home/developer/acados/lib:${LD_LIBRARY_PATH}
+      - ROS_DOMAIN_ID=${DOMAIN_ID}
+    command: bash -c "source /opt/ros/humble/setup.bash && source install/setup.bash && ros2 launch robot_bringup nmpc_full.launch.py input_image:=/dome_lidar/range_512x128 odometry:=/rmf_unipilot/odom output_topic:=/rmf_unipilot/cmd/acc cfg:=nmpc_sim_unipilot.yaml"
+    # command: bash -c "source /opt/ros/humble/setup.bash && source install/setup.bash && ros2 launch robot_bringup nmpc_full.launch.py input_image:=/dome_lidar/range_512x128 odometry:=/rmf_unipilot/odom output_topic:=/sdf_nmpc/cmd/acc cfg:=nmpc_sim_unipilot.yaml"
+    volumes:
+      - ./workspaces/ws_nmpc:/workspace
+      - *robot-bringup-volume
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - /dev/dri:/dev/dri
+    devices:
+      - /dev/dri:/dev/dri
+  
+  ros2_launch_dome_lidar_processor:
+    <<: *ros2-launch-template
+    image: unified_autonomy:ros2_nmpc
     runtime: nvidia
     environment:
       - DISPLAY=${DISPLAY}
@@ -243,14 +189,15 @@ services:
       - NVIDIA_DRIVER_CAPABILITIES=all
       - QT_X11_NO_MITSHM=1
       - ROS_DOMAIN_ID=${DOMAIN_ID}
-    command: bash -c "source /opt/ros/humble/setup.bash && cd /workspace/src/rl_nav/scripts && python3 lidar_nav_vel_ros2_node.py --env=lidar_navigation_task --experiment="magpie_lidar_policy7_vel_ttc_yaw_noisy_obs_21_Nov""
+    command: bash -c "ros2 launch robot_bringup dome_lidar_processor.launch.py input_topic:=/rmf_unipilot/lidar/points frame_id:=rmf_unipilot/base_link/lidar"
     volumes:
-      - ./workspaces/ws_rl:/workspace
+      - ./workspaces/ws_nmpc:/workspace
       - *robot-bringup-volume
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
       - /dev/dri:/dev/dri
     devices:
       - /dev/dri:/dev/dri
+
 
   # # # ==================== CBF ====================
   ros2_launch_cbf_pc_select:

@@ -223,7 +223,9 @@ services:
     <<: *colcon-build-template
     image: unified_autonomy:ros2_nmpc
     runtime: nvidia
-    command: bash -c "source install/setup.bash && ros2 run sdf_nmpc_ros build_solver.py --ros-args -p cfg:=ros2/nmpc_sim_lidar.yaml"
+    # command: bash -c "source install/setup.bash && ros2 run sdf_nmpc_ros build_solver.py --ros-args -p cfg:=ros2/nmpc_sim_lidar.yaml"
+    command: bash -c "source install/setup.bash && ros2 run sdf_nmpc_ros build_solver.py --ros-args -p cfg:=ros2/nmpc_sim_unipilot.yaml"
+    # command: bash -c "source install/setup.bash && ros2 run sdf_nmpc_ros build_solver.py --ros-args -p cfg:=ros2/nmpc_magpie.yaml"
     user: developer
     volumes:
       - ./workspaces/ws_nmpc:/workspace

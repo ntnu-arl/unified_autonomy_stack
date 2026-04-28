@@ -3,6 +3,8 @@
 .PHONY: help
 .DEFAULT_GOAL := help
 
+DOCKER_COMPOSE_FILE ?= docker-compose.yml
+
 help: ## Show this help message
 	@echo "Available make targets:"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
@@ -46,7 +48,7 @@ LAUNCH_SERVICES_ROS2 := $(shell docker compose -f $(DOCKER_COMPOSE_FILE) --profi
 LAUNCH_SERVICES_STRIPPED := $(LAUNCH_SERVICES_ROS1) $(LAUNCH_SERVICES_ROS2)
 
 launch: ## Launch all services
-	@docker compose -f $(DOCKER_COMPOSE_FILE) --profile launch up
+	@docker compose -f $(DOCKER_COMPOSE_FILE) --profile launch up $(DOCKER_ARGS)
 
 #TODO: launch for specific services
 
