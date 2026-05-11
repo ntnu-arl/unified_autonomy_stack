@@ -183,6 +183,99 @@ services:
               count: all
               capabilities: [gpu]
   
+  ros2_launch_sitl:
+    <<: *ros2-launch-template
+    image: unified_autonomy:ros2_heli_sim
+    command: >
+      bash -c "python3 ${ARDUPILOT_DIR:-/ardupilot}/Tools/autotest/sim_vehicle.py -v ArduCopter -f heli --no-rebuild --add-param-file /workspace/src/robot_bringup/config/ros2/heli_params/heli_sitl.parm --out udp:localhost:14550 --out udp:localhost:14551 --custom-location=${HOME_LAT:--35.363262},${HOME_LON:-149.165237},${HOME_ALT:-584},${HOME_HEADING:-353} --console"
+    volumes:
+      - *x11-volume
+      - ./workspaces/ws_sim:/workspace
+      - *robot-bringup-volume
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 5760 || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 15s
+    environment:
+      - ROS_DOMAIN_ID=${DOMAIN_ID:-0}
+
+  ros2_launch_mavros:
+    <<: *ros2-launch-template
+    image: unified_autonomy:ros2_heli_sim
+    depends_on:
+      ros2_launch_sitl:
+        condition: service_healthy
+    command: >
+      bash -c "
+        source /opt/ros/humble/setup.bash &&
+        ros2 run mavros mavros_node
+          --ros-args
+          --params-file /workspace/src/robot_bringup/ros2/heli_params/mavros_apm.yaml
+          -p fcu_url:=udp://0.0.0.0:14540@localhost:14551
+          -p gcs_url:=udp://@localhost:14550
+          -p system_id:=255
+          -p target_system_id:=1
+          -r __ns:=/
+      "
+    environment:
+      - ROS_DOMAIN_ID=${DOMAIN_ID}
+    volumes:
+      - *x11-volume
+      - *robot-bringup-volume
+  
+  ros2_launch_heli_manager:
+    <<: *ros2-launch-template
+    image: unified_autonomy:ros2_heli_sim
+    depends_on:
+      ros2_launch_sitl:
+        condition: service_healthy
+    command: >
+      bash -c "
+        source /opt/ros/humble/setup.bash &&
+        source /workspace/install/setup.bash &&
+        sleep 10 &&
+        ros2 launch helicopter_bridge heli_manager.launch.py
+          use_sim_time:=false
+          takeoff_alt_m:=${TAKEOFF_ALT:-3.0}
+      "
+    volumes:
+      - ./workspaces/ws_sim:/workspace
+      - *robot-bringup-volume
+    environment:
+      - DISPLAY=${DISPLAY:-:0}
+      - ROS_DOMAIN_ID=${DOMAIN_ID:-0}
+      - TAKEOFF_ALT=${TAKEOFF_ALT:-3.0}
+  
+  ros2_launch_heli_gz:
+    <<: *ros2-launch-template
+    image: unified_autonomy:ros2_heli_sim
+    command: bash -c "source /opt/ros/humble/setup.bash && source /workspace/install/setup.bash && ros2 launch helicopter_bridge gz_heli.launch.py world:=${GZ_WORLD:-empty} headless:=${GZ_HEADLESS:-false} world_name:=${GZ_WORLD_NAME:-map} model_name:=${GZ_MODEL_NAME:-helicopter}
+      "
+    volumes:
+      - *x11-volume
+      - ./workspaces/ws_sim:/workspace
+    environment:
+      - DISPLAY=${DISPLAY}
+      - ROS_DOMAIN_ID=${DOMAIN_ID}
+      - GZ_WORLD=${GZ_WORLD:-empty}
+      - GZ_HEADLESS=${GZ_HEADLESS:-true}
+      - GZ_WORLD_NAME=${GZ_WORLD_NAME:-map}
+      - GZ_MODEL_NAME=${GZ_MODEL_NAME:-helicopter}
+      # Make world files (rmf_gz) and the installed helicopter model resolvable
+      - GZ_SIM_RESOURCE_PATH=/workspace/src/rmf_gz/resources:/workspace/install/helicopter_bridge/share/helicopter_bridge/resources
+  
+  ros2_launch_lidar_proc:
+    <<: *ros2-launch-template
+    image: unified_autonomy:ros2_sim
+    command: bash -c "source /workspace/install/setup.bash && ros2 launch robot_bringup uav_sim_helicopter.launch.xml robot_name:=${GZ_MODEL_NAME:-helicopter}"
+    volumes:
+      - ./workspaces/ws_sim:/workspace:ro
+      - *robot-bringup-volume
+    environment:
+      - ROS_DOMAIN_ID=${DOMAIN_ID}
+  
   # ros2_launch_ugv_sim:
   #   <<: [*ros2-launch-template]
   #   image: unified_autonomy:ros2_sim
@@ -252,6 +345,31 @@ services:
     devices:
       - /dev/dri:/dev/dri
 
+  # # # ==================== NMPC ====================
+
+  # # --- NMPC colcon build ---
+  ros2_launch_nmpc:
+    <<: *ros2-launch-template
+    image: unified_autonomy:ros2_nmpc
+    runtime: nvidia
+    environment:
+      - DISPLAY=${DISPLAY}
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      - QT_X11_NO_MITSHM=1
+      - PYTHONPATH=/workspace/src/sdf-nmpc:/home/developer/acados/interfaces/acados_template:${PYTHONPATH}
+      - ACADOS_SOURCE_DIR=/home/developer/acados
+      - LD_LIBRARY_PATH=/usr/local/lib:/home/developer/acados/lib:${LD_LIBRARY_PATH}
+      - ROS_DOMAIN_ID=${DOMAIN_ID}
+    command: bash -c "source /opt/ros/humble/setup.bash && source install/setup.bash && ros2 launch robot_bringup nmpc_full.launch.py cfg:=nmpc_sim_helicopter.yaml odometry:=/helicopter/odom input_image:=/helicopter/lidar/range output_topic:=/sdf_nmpc/cmd/acc"
+    volumes:
+      - ./workspaces/ws_nmpc:/workspace
+      - *robot-bringup-volume
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - /dev/dri:/dev/dri
+    devices:
+      - /dev/dri:/dev/dri
+
   # # # ==================== CBF ====================
   ros2_launch_cbf_pc_select:
     <<: *ros2-launch-template
@@ -290,3 +408,17 @@ services:
       - /dev/dri:/dev/dri
     devices:
       - /dev/dri:/dev/dri
+
+  # ── TF → Odometry ───────────────────────────────────────────────────────────
+  # Queries the TF published by MAVROS (map → helicopter/base_link) and
+  # republishes it as nav_msgs/Odometry on /helicopter/odom.
+  # This avoids QoS mismatches on the raw MAVROS odometry topic.
+  ros2_relay_odom:
+    <<: *ros2-launch-template
+    image: unified_autonomy:ros2_sim
+    command: bash -c "source /opt/ros/humble/setup.bash && python3 /workspace/src/robot_bringup/scripts/ros2/tf_to_odom.py map helicopter/base_link /helicopter/odom 50.0"
+    volumes:
+      - ./workspaces/ws_sim:/workspace:ro
+      - *robot-bringup-volume
+    environment:
+      - ROS_DOMAIN_ID=${DOMAIN_ID}
