@@ -1,5 +1,11 @@
 # Unified Autonomy Stack
 
+**Paper**: [The Unified Autonomy Stack: Toward a Blueprint for Generalizable Robot Autonomy](https://arxiv.org/abs/2605.12735)
+
+**Video**: [Unified Autonomy Stack - Overview](https://www.youtube.com/watch?v=l8Su8OXsM-E)
+
+**Playlist**: [Unified Autonomy Stack - Experiments and Evaluations](https://www.youtube.com/watch?v=8nVnXTUH2Hc&list=PLu70ME0whad9KCs5PHx-35-qpyK14yZYi&index=2)
+
 Welcome to the documentation for the **Unified Autonomy Stack**. 
 This stack presents an autonomy architecture integrating perception, planning, and navigation algorithms developed and field tested at the <img src="figures/arl_logo.png" alt="ARL Logo" style="height: 1.5em; middle;"> [Autonomous Robots Lab](https://www.autonomousrobotslab.com) across robot configurations. The stack consists of the software for the core algorithms along with drivers, utilities, and tools for simulation and testing. We currently support rotary-wing (e.g., multirotor) and certain ground systems (e.g., legged robots) with extension to other configurations, such as underwater robots, coming soon. The software distributed as a part of this stack has been thoroughly tested in real-world scenarios, demonstrating robust autonomous operation in challenging GPS-denied environments.
 
@@ -44,6 +50,18 @@ and indicative results and datasets:
 ## Technical Report
 
 For a comprehensive report of the `Unified Autonomy Stack` please refer to the [Technical Report](./report/UnifiedAutonomyStack-Outline.md){data-preview}.
+
+## Citation
+If you use the Unified Autonomy Stack in your research, please consider citing the following paper:
+
+```
+@article{unifiedautonomystack2026,
+  title={The Unified Autonomy Stack: Toward a Blueprint for Generalizable Robot Autonomy},
+  author={Dharmadhikari, Mihir and Khedekar, Nikhil and Kulkarni, Mihir and Nissov, Morten and Jacquet, Martin and Zacharia, Angelos and Harms, Marvin and Puigjaner, Albert Gassol and Weiss, Philipp and Alexis, Kostas},
+  journal={arXiv preprint arXiv:2605.12735},
+  year={2026}
+}
+```
 
 ## Contact
 
