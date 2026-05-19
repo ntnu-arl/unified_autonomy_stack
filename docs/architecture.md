@@ -43,10 +43,9 @@ graph TD
     Selector --> MPC
     Selector --> RL
     MPC -->|Commands| CBF
-    RL -.->|"Commands (WIP)"| CBF
+    RL -->|"Commands"| CBF
     CBF -->|Safe Commands| AerialControllers
     Planning -->|Waypoints| GroundControllers
-    RL -->|Commands| AerialControllers
     
     classDef perception fill:#d1fae530,stroke:#10b981,stroke-width:2px,color:#000
     classDef planning fill:#dbeafe30,stroke:#3b82f6,stroke-width:2px,color:#000

@@ -37,10 +37,9 @@ graph TB
     Selector -->|RL Mode| RL["RL Policy<br/>(ROS 2)"]
     
     NMPC -->|Acceleration<br/>Setpoints| CBF["CBF Safety<br/>Filter<br/>(ROS 2)"]
-    RL -.->|"Acceleration<br/>Setpoints<br/>(WIP)"| CBF
+    RL -->|"Acceleration<br/>Setpoints"| CBF
     
     CBF -->|"Filtered<br/>Acceleration<br/>(MAVROS)"| Autopilot["Onboard<br/>Autopilot"]
-    RL -->|"Velocity<br/>Setpoints<br/>(MAVROS)"| Autopilot
     
     Autopilot -->|Motor<br/>Commands| Robot["Multirotor"]
     Selector -->|"Override<br/>Reference<br/>Trajectory<br/>(MAVROS)"| Autopilot
