@@ -9,7 +9,7 @@ Neural SDF-MPC is a nonlinear model predictive control framework for mapless, co
 
 **Related Publications**:
 
-- [Jacquet, Martin, Marvin Harms, and Kostas Alexis. "Neural NMPC through Signed Distance Field Encoding for Collision Avoidance." International Journal of Robotics Research, 2025.](https://arxiv.org/abs/2511.21312)
+- [Jacquet, Martin, Marvin Harms, and Kostas Alexis. "Neural NMPC through Signed Distance Field Encoding for Collision Avoidance." International Journal of Robotics Research, 2025.](https://journals.sagepub.com/doi/full/10.1177/02783649251401223)
 - [Dharmadhikari, M. et al. "The Unified Autonomy Stack: Toward a Blueprint for Generalizable Robot Autonomy." arXiv preprint arXiv:2605.12735, 2025.](https://arxiv.org/abs/2605.12735)
 
 The neural architecture consists of two cascaded networks:
