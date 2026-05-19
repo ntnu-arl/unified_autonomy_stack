@@ -11,7 +11,7 @@ This method enables safe collision-free navigation in complex environments witho
     - **GitHub:** [ntnu-arl/rl_nav](https://github.com/ntnu-arl/rl_nav/tree/dev/unified_autonomy_stack)
 
 **Related Publications**:
-
+- [Dharmadhikari, M. et. al. "The Unified Autonomy Stack: Toward a Blueprint for Generalizable Robot Autonomy." arXiv preprint arXiv:2605.12735, 2026.](https://arxiv.org/abs/2605.12735)
 - [M. Kulkarni, W. Rehberg and K. Alexis, "Aerial Gym Simulator: A Framework for Highly Parallelized Simulation of Aerial Robots," in IEEE Robotics and Automation Letters, vol. 10, no. 4, pp. 4093-4100, April 2025.](https://ieeexplore.ieee.org/document/10910148)
 - [Kulkarni, Mihir, and Kostas Alexis. "Reinforcement learning for collision-free flight exploiting deep collision encoding." 2024 IEEE International Conference on Robotics and Automation (ICRA). IEEE, 2024.](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=10610287)
 

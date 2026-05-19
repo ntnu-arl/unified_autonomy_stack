@@ -8,7 +8,7 @@ The perception layer provides robust state estimation and mapping through [MIMOS
     - **GitHub:** [ntnu-arl/mimosa](https://github.com/ntnu-arl/mimosa)
 
 **Related Publications:**
-
+- [Dharmadhikari, M. et. al. "The Unified Autonomy Stack: Toward a Blueprint for Generalizable Robot Autonomy." arXiv preprint arXiv:2605.12735, 2026.](https://arxiv.org/abs/2605.12735)
 - [Khedekar, N. and Alexis, K. "PG-LIO: Photometric-Geometric fusion for Robust LiDAR-Inertial Odometry." arXiv preprint arXiv:2506.18583, 2025.](http://arxiv.org/abs/2506.18583)
 - [Nissov, M., Edlund, J.A., Spieler, P., Padgett, C., Alexis, K., and Khattak, S. "Robust High-Speed State Estimation for Off-Road Navigation Using Radar Velocity Factors." IEEE Robotics and Automation Letters, vol. 9, no. 12, pp. 11146-11153, 2024.](https://doi.org/10.1109/lra.2024.3486189)
 - [Nissov, M., Khattak, S., Edlund, J.A., Padgett, C., Alexis, K., and Spieler, P. "ROAMER: Robust Offroad Autonomy using Multimodal State Estimation with Radar Velocity Integration." 2024 IEEE Aerospace Conference, pp. 1-10, 2024.](https://ieeexplore.ieee.org/document/10521170)

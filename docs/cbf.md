@@ -10,7 +10,7 @@ Beyond map-based planning and reactive navigation approaches (Neural SDF-NMPC, E
     - **GitHub:** [ntnu-arl/composite_cbf](https://github.com/ntnu-arl/composite_cbf/tree/dev/unified_autonomy_stack)
 
 **Related Publications**:
-
+- [Dharmadhikari, M. et. al. "The Unified Autonomy Stack: Toward a Blueprint for Generalizable Robot Autonomy." arXiv preprint arXiv:2605.12735, 2026.](https://arxiv.org/abs/2605.12735)
 - [M. Harms, M. Jacquet and K. Alexis, "Safe Quadrotor Navigation Using Composite Control Barrier Functions," 2025 IEEE International Conference on Robotics and Automation (ICRA), Atlanta, GA, USA, 2025, pp. 6343-6349, doi: 10.1109/icra55743.2025.11127368.](https://ieeexplore.ieee.org/document/11127368)
 - [N. Misyats, M. Harms, M. Nissov, M. Jacquet and K. Alexis, "Embedded Safe Reactive Navigation for Multirotors Systems using Control Barrier Functions," 2025 International Conference on Unmanned Aircraft Systems (ICUAS), Charlotte, NC, USA, 2025, pp. 697-704, doi: 10.1109/icuas65942.2025.11007827.](https://ieeexplore.ieee.org/document/11007827)
 

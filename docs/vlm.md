@@ -13,6 +13,10 @@ In their combination, these capabilities collectively enable semantic scene unde
     - **Package:** `detection_vlm`
     - **GitHub:** [ntnu-arl/detection_vlm](https://github.com/ntnu-arl/detection_vlm)
 
+
+## Related Publications
+- [Dharmadhikari, M. et. al. "The Unified Autonomy Stack: Toward a Blueprint for Generalizable Robot Autonomy." arXiv preprint arXiv:2605.12735, 2026.](https://arxiv.org/abs/2605.12735)
+
 ## System Overview
 
 The VLM stack is designed to run alongside the core perception and planning modules, providing semantic annotations and reasoning.

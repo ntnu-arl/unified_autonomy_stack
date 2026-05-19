@@ -15,7 +15,8 @@ The method is fully [open-source](https://github.com/ntnu-arl/gbplanner_ros/tree
 
 
 **Related Publications:**
-
+- [Zacharia, A., et al. "OmniPlanner: Universal Exploration and Inspection Path Planning across Robot Morphologies." arXiv preprint arXiv:2603.04284](https://arxiv.org/abs/2603.04284)
+- [Dharmadhikari, M. et. al. "The Unified Autonomy Stack: Toward a Blueprint for Generalizable Robot Autonomy." arXiv preprint arXiv:2605.12735, 2026.](https://arxiv.org/abs/2605.12735)
 - [Dharmadhikari, M., et al. "Autonomous Exploration and General Visual Inspection of Ship Ballast Water Tanks Using Aerial Robots." 2023 21st International Conference on Advanced Robotics (ICAR), pp. 409-416, 2023.](https://ieeexplore.ieee.org/document/10406928)
 - [Kulkarni, M., et al. "Autonomous Teamed Exploration of Subterranean Environments using Legged and Aerial Robots." 2022 International Conference on Robotics and Automation (ICRA), pp. 3306-3313, 2022.](https://ieeexplore.ieee.org/document/9812401)
 - [Dang, T., et al. "Graph-based subterranean exploration path planning using aerial and legged robots." Journal of Field Robotics, vol. 37, no. 8, pp. 1363-1388, 2020.](https://onlinelibrary.wiley.com/doi/abs/10.1002/rob.21993)
