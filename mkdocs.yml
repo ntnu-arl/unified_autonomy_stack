@@ -56,8 +56,8 @@ nav:
       - Platforms: platforms.md
       - Hardware and Drivers: hardware.md
   - Evaluation:
-    - Prior Results: prior_results.md
     - Indicative Results: indicative_results.md
+    - Prior Results: prior_results.md
     - Datasets: datasets.md
   - Planned Upgrades: planned_upgrades.md
   - Technical Report: report/UnifiedAutonomyStack-Outline.md
