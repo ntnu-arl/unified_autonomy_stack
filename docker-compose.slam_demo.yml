@@ -81,7 +81,8 @@ services:
   ros1_launch_mimosa:
     <<: [*ros1-launch-template]
     image: unified_autonomy:ros1_base
-    command: roslaunch robot_bringup mimosa.launch viz:=true
+    # command: roslaunch robot_bringup mimosa.launch viz:=true
+    command: roslaunch mimosa hornbill.launch viz:=true
     privileged: true
     volumes:
       - *x11-volume
