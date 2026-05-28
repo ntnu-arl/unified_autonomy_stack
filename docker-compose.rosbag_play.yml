@@ -66,9 +66,9 @@ services:
   # ==================== ROSBAG PLAY ====================
 
   ros1_launch_rosbag_play:
-    <<: [*ros1-launch-template]
+    <<: [*system-template]
     image: unified_autonomy:ros1_base
-    command: rosbag play --clock /bags/${BAG_NAME}
+    command: rosbag play --clock /bags/${BAG_NAME} -r 3 -s 50
     volumes:
       - *robot-bringup-volume
       - *recorded-data-volume

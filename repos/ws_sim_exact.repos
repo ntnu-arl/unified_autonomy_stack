@@ -11,3 +11,7 @@ repositories:
     type: git
     url: git@github.com:ntnu-arl/ugv_gz.git
     version: c8b48e97dd4dc8ade46ec39788d3f0a8b3097355
+  src/helicopter_bridge:
+    type: git
+    url: git@github.com:ntnu-arl/helicopter_bridge.git
+    version: 02c55b4214a65687e720e1a3554559f074017bbc

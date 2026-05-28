@@ -1,0 +1,78 @@
+# Dockerfile.ros2_heli_sim
+#
+# Extends unified_autonomy:ros2_sim (Gazebo Harmonic + gz-transport/msgs dev
+# headers already present) with the helicopter-SITL-specific additions:
+#
+#   1. ros-humble-mavros  (MAVROS node binary — ros2_base only has mavros-msgs)
+#   2. GeographicLib datasets  (MAVROS runtime datum files)
+#   3. ArduPilot SITL build  (arducopter-heli binary + sim_vehicle.py;
+#      no apt binary exists — must compile from source)
+#   4. ArduPilot Python prerequisites  (pymavlink, mavproxy, etc.)
+#
+# Everything Gazebo-related (gz-harmonic, ros-humble-ros-gzharmonic,
+# libgz-transport13-dev, libgz-msgs10-dev, …) is already in ros2_sim and does
+# NOT need to be repeated here.
+#
+# Build-time args:
+#   ARDUPILOT_TAG  — git tag to build  (default: Copter-4.6.0)
+#   ARDUPILOT_DIR  — install path inside the image (default: /ardupilot)
+
+ARG BASE_IMAGE=unified_autonomy:ros2_sim
+FROM ${BASE_IMAGE}
+
+ARG ARDUPILOT_TAG=Copter-4.6.0
+ARG ARDUPILOT_DIR=/ardupilot
+ARG DEBIAN_FRONTEND=noninteractive
+
+ENV ARDUPILOT_DIR=${ARDUPILOT_DIR}
+ENV PATH="${ARDUPILOT_DIR}/Tools/autotest:${PATH}"
+
+# ros2_sim ends as USER developer; switch back to root for apt installs.
+USER root
+
+# ── 1. MAVROS node binary ─────────────────────────────────────────────────────
+# ros2_base (and thus ros2_sim) has ros-humble-mavros-msgs but NOT the node.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        ros-humble-mavros \
+        ros-humble-mavros-extras \
+    && rm -rf /var/lib/apt/lists/*
+
+# ── 2. GeographicLib datasets ─────────────────────────────────────────────────
+RUN /opt/ros/humble/lib/mavros/install_geographiclib_datasets.sh
+
+# ── 3. ArduPilot SITL ─────────────────────────────────────────────────────────
+# The developer user already exists in ros2_sim; skip groupadd/useradd.
+RUN git clone --depth 1 --branch ${ARDUPILOT_TAG} \
+        https://github.com/ArduPilot/ardupilot.git ${ARDUPILOT_DIR} && \
+    cd ${ARDUPILOT_DIR} && \
+    git submodule update --init --recursive --depth 1 && \
+    chown -R developer:developer ${ARDUPILOT_DIR}
+
+# install-prereqs-ubuntu.sh refuses to run as root → use su.
+RUN cd ${ARDUPILOT_DIR} && \
+    su -c "Tools/environment_install/install-prereqs-ubuntu.sh -y" developer && \
+    . ~/.profile
+
+# Compile as developer to avoid git safe.directory errors.
+# Produces: ${ARDUPILOT_DIR}/build/sitl/bin/arducopter-heli
+RUN cd ${ARDUPILOT_DIR} && \
+    su -c "./waf configure --board sitl && ./waf heli" developer
+
+# ── 4. Workspace directory ────────────────────────────────────────────────────
+RUN mkdir -p /workspace/src && \
+    chown -R developer:developer /workspace
+
+# ── 5. Standard closing block ─────────────────────────────────────────────────
+ENV PATH="${PATH}:/home/developer/.local/bin"
+
+USER developer
+WORKDIR /home/developer
+
+RUN echo "if [ -f /etc/bash_completion ]; then . /etc/bash_completion; fi" >> ~/.bashrc
+RUN rosdep update
+
+ENV SHELL=/bin/bash
+EXPOSE 5555
+
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["bash"]
