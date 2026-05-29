@@ -71,11 +71,11 @@ _Note: Cloning all repositories will take some time (especially ws_sim.repos), p
 make images
 ```
 
-_Note: Building the images for the firs time will take some time, please be patient_
+_Note: Building the images for the first time will take some time, please be patient_
 
 ### Build the code
 
-#### There are two ways to build the code:  
+#### There are three ways to build the code:  
 
 **Option1:** Build all workspaces in parallel. This method is faster but it can be tedious to see the output of individual workspaces.
 
@@ -89,6 +89,13 @@ make build
 ```bash
 # cd unified_autonomy_stack
 make build-sequential
+```
+
+**Option3:** Building individual workspaces manually. This is convenient for debugging changes made to singular workspaces. A list of possible build services can be found with `make build-list`.
+
+```bash
+# cd unified_autonomy_stack
+make build-<SERVICE>
 ```
 
 _Note: If you are building the stack on a low ram computer, it is advised to use **Option2** as it will not make the ram fill up causing the build to fail._

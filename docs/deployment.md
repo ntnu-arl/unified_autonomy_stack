@@ -34,13 +34,15 @@ vcs status
 The system is launched through docker compose services located in the docker-compose.\<purpose\>.yml files. We have crated a `Makefile` to provide easy to use commands to use the docker compose functionalities. The available commands are:
 
 ```txt
-help                                Show the help message
+help                                Show this help message
 images                              Build all Docker images
 build                               Build all services in parallel (messy output)
+build-%                             Pattern rule for building specific services
 build-sequential                    Build all services sequentially (one-by-one and slower, but cleaner output)
+build-list                          List all available build services
 launch DOCKER_COMPOSE_FILE=file     Launch all services in the docker compose file named 'file'
 stop                                Stop all launched services
-restart                             art all launched services
+restart                             Restart all launched services
 status-all                          All Services Status (all profiles)
 logs                                show logs from all services
 ```

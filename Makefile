@@ -7,7 +7,7 @@ DOCKER_COMPOSE_FILE ?= docker-compose.yml
 
 help: ## Show this help message
 	@echo "Available make targets:"
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z_%-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 	@echo "Build services in docker-compose.yml:"
 	@echo "  $(BUILD_SERVICES_STRIPPED)"
 	@echo "Launch services in docker-compose.yml:"
@@ -38,6 +38,10 @@ build-sequential: ## Build all services sequentially (one-by-one and slower, but
 	@for pkg in $(BUILD_SERVICES_STRIPPED); do \
 		$(MAKE) build-$$pkg || exit 1; \
 	done
+
+build-list: ## List all available build services
+	@echo "Available services for 'make build-<package>':"
+	@for pkg in $(shell echo $(BUILD_SERVICES_STRIPPED) | tr ' ' '\n' | sort); do echo "  - $$pkg"; done
 
 
 # ==================== SERVICE MANAGEMENT ====================
