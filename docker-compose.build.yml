@@ -88,6 +88,14 @@ services:
       - *robot-bringup-volume
       - ./workspaces/ws_rslidar_sdk:/workspace
 
+  # --- Hesai Lidar ---
+  build_hesailidar:
+    <<: [*catkin-build-template]
+    image: unified_autonomy:ros1_base
+    volumes:
+      - *robot-bringup-volume
+      - ./workspaces/ws_hesailidar:/workspace
+
   # Radar
   # --- MMWave TI ROS ---
   build_mmwave_ti_ros:
@@ -126,15 +134,15 @@ services:
 
   # ==================== SIMULATION ====================
 
-  # --- Simulation ---
-  build_sim:
-    <<: [*colcon-build-template]
-    image: unified_autonomy:ros2_sim
-    command: colcon build --cmake-force-configure --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
-    volumes:
-      - *x11-volume
-      - *robot-bringup-volume
-      - ./workspaces/ws_sim:/workspace
+  # # --- Simulation ---
+  # build_sim:
+  #   <<: [*colcon-build-template]
+  #   image: unified_autonomy:ros2_sim
+  #   command: colcon build --cmake-force-configure --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
+  #   volumes:
+  #     - *x11-volume
+  #     - *robot-bringup-volume
+  #     - ./workspaces/ws_sim:/workspace
 
   build_heli_bridge:
     <<: *colcon-build-template
@@ -165,22 +173,22 @@ services:
       - ./workspaces/ws_ethzasl_msf:/workspace
 
   # --- VLM ---
-  build_vlm:
-    <<: [*colcon-build-template]
-    image: unified_autonomy:ros2_vlm
-    runtime: nvidia
-    # command: bash -c "source /home/developer/detection_vlm_venv/bin/activate && colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release"
-    volumes:
-      - *x11-volume
-      - *robot-bringup-volume
-      - ./workspaces/ws_vlm:/workspace
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
+  # build_vlm:
+  #   <<: [*colcon-build-template]
+  #   image: unified_autonomy:ros2_vlm
+  #   runtime: nvidia
+  #   # command: bash -c "source /home/developer/detection_vlm_venv/bin/activate && colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release"
+  #   volumes:
+  #     - *x11-volume
+  #     - *robot-bringup-volume
+  #     - ./workspaces/ws_vlm:/workspace
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: all
+  #             capabilities: [gpu]
 
   # # # ==================== NMPC ====================
 

@@ -8,6 +8,20 @@ FROM unified_autonomy:ros2_cuda
 ENV DEBIAN_FRONTEND=noninteractive
 
 # ============================================================================
+# FIX: Override pip index to use standard PyPI
+# ============================================================================
+ENV PIP_INDEX_URL=https://pypi.org/simple
+ENV PIP_EXTRA_INDEX_URL=""
+ENV PIP_TRUSTED_HOST=""
+
+# Alternative: Create/override pip config
+RUN mkdir -p /root/.config/pip && \
+    echo "[global]" > /root/.config/pip/pip.conf && \
+    echo "index-url = https://pypi.org/simple" >> /root/.config/pip/pip.conf && \
+    echo "timeout = 60" >> /root/.config/pip/pip.conf
+
+
+# ============================================================================
 # STAGE 2: Additional Python Dependencies
 # ============================================================================
 

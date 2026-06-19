@@ -58,12 +58,18 @@ services:
     profiles: ["launch"]
     command: roscore
     healthcheck:
-      test: ["CMD-SHELL", "bash", "-c", "source /opt/ros/noetic/setup.bash && rostopic list || exit 1"]
-      interval: 2s
-      timeout: 2s
+      test:
+        [
+          "CMD-SHELL",
+          "bash",
+          "-c",
+          "source /opt/ros/noetic/setup.bash && rostopic list || exit 1",
+        ]
+      interval: 1s
+      timeout: 1s
       retries: 5
-      start_period: 3s  # Give it time to start before checking
-  
+      start_period: 1s # Give it time to start before checking
+
   # ros1_launch_recorder:
   #   <<: [*ros1-launch-template]
   #   image: unified_autonomy:ros1_base
@@ -94,7 +100,7 @@ services:
     environment:
       - ROS_DOMAIN_ID=${DOMAIN_ID}
     depends_on:
-      ros1_launch_roscore:
+      ros1_launch_vectornav:
         condition: service_healthy
 
   # ==================== CODE ====================
@@ -136,91 +142,85 @@ services:
       retries: 5
       start_period: 5s # Gives the sensor time to initialize and start publishing
 
-  # LiDAR
-  # # --- RSLidar SDK ---
-  # ros1_launch_rslidar_sdk:
+  # # LiDAR
+  # # --- Hesai LiDAR ---
+  # ros1_launch_hesailidar:
   #   <<: [*ros1-launch-template]
   #   image: unified_autonomy:ros1_base
-  #   command: roslaunch robot_bringup airy.launch
+  #   command: roslaunch robot_bringup jt128.launch
   #   volumes:
   #     - *robot-bringup-volume
-  #     - ./workspaces/ws_rslidar_sdk:/workspace
+  #     - ./workspaces/ws_hesailidar:/workspace
 
-   # --- Hesai LiDAR ---
-  ros1_launch_hesailidar:
-    <<: [*ros1-launch-template]
-    image: unified_autonomy:ros1_base
-    command: roslaunch robot_bringup jt128.launch
-    volumes:
-      - *robot-bringup-volume
-      - ./workspaces/ws_hesailidar:/workspace 
-
-  # Radar
-  # --- MMWave TI ROS ---
-  ros1_launch_mmwave_ti_ros:
-    <<: [*ros1-launch-template]
-    image: unified_autonomy:ros1_base
-    command: roslaunch robot_bringup iwr6843aop.launch
-    volumes:
-      - *robot-bringup-volume
-      - ./workspaces/ws_mmwave_ti_ros:/workspace
-    devices:
-      - /dev/ttyUSB0:/dev/ttyUSB0
-      - /dev/ttyUSB1:/dev/ttyUSB1
-
-  # # Camera
-  # # --- Camera 0 ---
-  # ros2_launch_ros_gst_bridge_0:
-  #   <<: [*ros2-launch-template]
-  #   image: unified_autonomy:ros2_nmpc
-  #   runtime: nvidia
-  #   command: bash -c "source /opt/ros/humble/setup.bash && gst-launch-1.0 nvarguscamerasrc sensor-id=0 aeantibanding=0 aelock=0 ee-mode=0 tnr-mode=0 gainrange=\"1 4\" ispdigitalgainrange=\"1 1\" exposuretimerange=\"500000 10000000\" ! 'video/x-raw(memory:NVMM),width=720,height=540' ! nvvidconv flip-method=2 ! 'video/x-raw(memory:NVMM),format=I420' ! nvjpegenc quality=80 ! queue ! rosimagesink ros-topic=\"cam_right/image_raw/compressed\" sync_topic=\"/vectornav_driver_node/sync_out_stamp\""
+  # # Radar
+  # # --- MMWave TI ROS ---
+  # ros1_launch_mmwave_ti_ros:
+  #   <<: [*ros1-launch-template]
+  #   image: unified_autonomy:ros1_base
+  #   command: roslaunch robot_bringup iwr6843aop.launch
   #   volumes:
-  #     - *x11-volume
-  #     - ./workspaces/ws_ros_gst_bridge:/workspace
-  #     - /tmp/argus_socket:/tmp/argus_socket
-  #     - ${XAUTHORITY:-$HOME/.Xauthority}:/tmp/.Xauthority:ro
-  #     # Critical: Mount ALL NVIDIA libraries from host to avoid version mismatches
-  #     - /usr/lib/aarch64-linux-gnu/tegra:/usr/lib/aarch64-linux-gnu/tegra
-  #     - /usr/lib/aarch64-linux-gnu/tegra-egl:/usr/lib/aarch64-linux-gnu/tegra-egl
-  #     - /usr/lib/aarch64-linux-gnu/nvidia:/usr/lib/aarch64-linux-gnu/nvidia
-  #     # Mount GStreamer NVIDIA plugins from host
-  #     - /usr/lib/aarch64-linux-gnu/gstreamer-1.0:/usr/lib/aarch64-linux-gnu/gstreamer-1.0
-  #   environment:
-  #     - XAUTHORITY=/tmp/.Xauthority
-  #     - GST_PLUGIN_PATH=/usr/lib/aarch64-linux-gnu/gstreamer-1.0
-  #     - LD_LIBRARY_PATH=/usr/lib/aarch64-linux-gnu/tegra:/usr/lib/aarch64-linux-gnu/tegra-egl:/usr/lib/aarch64-linux-gnu/nvidia:${LD_LIBRARY_PATH}
-  #     - ROS_DOMAIN_ID=${DOMAIN_ID}
+  #     - *robot-bringup-volume
+  #     - ./workspaces/ws_mmwave_ti_ros:/workspace
   #   devices:
-  #     # Camera devices
-  #     - /dev/video0:/dev/video0
-  #     - /dev/tegra_camera_ctrl:/dev/tegra_camera_ctrl
-  #     # ISP devices
-  #     - /dev/nvhost-ctrl-isp:/dev/nvhost-ctrl-isp
-  #     - /dev/nvhost-ctrl-isp-thi:/dev/nvhost-ctrl-isp-thi
-  #     # VI (Video Input) devices
-  #     - /dev/nvhost-ctrl-vi0:/dev/nvhost-ctrl-vi0
-  #     - /dev/nvhost-ctrl-vi0-thi:/dev/nvhost-ctrl-vi0-thi
-  #     - /dev/nvhost-ctrl-vi1:/dev/nvhost-ctrl-vi1
-  #     - /dev/nvhost-ctrl-vi1-thi:/dev/nvhost-ctrl-vi1-thi
-  #     # NVCSI devices
-  #     - /dev/nvhost-ctrl-nvcsi:/dev/nvhost-ctrl-nvcsi
-  #     # GPU devices (critical for EGL)
-  #     - /dev/nvhost-gpu:/dev/nvhost-gpu
-  #     - /dev/nvhost-as-gpu:/dev/nvhost-as-gpu
-  #     - /dev/nvhost-ctrl-gpu:/dev/nvhost-ctrl-gpu
-  #     - /dev/nvhost-tsg-gpu:/dev/nvhost-tsg-gpu
-  #     - /dev/dri:/dev/dri
-  #     # Additional NVHOST devices that may be needed
-  #     - /dev/nvhost-ctrl-nvdla0:/dev/nvhost-ctrl-nvdla0
-  #     - /dev/nvhost-ctrl-nvdla1:/dev/nvhost-ctrl-nvdla1
-  #     - /dev/nvhost-ctrl-pva0:/dev/nvhost-ctrl-pva0
-  #   group_add:
-  #     - video
-  #   privileged: true
+  #     - /dev/ttyUSB0:/dev/ttyUSB0
+  #     - /dev/ttyUSB1:/dev/ttyUSB1
   #   depends_on:
   #     ros1_launch_vectornav:
   #       condition: service_healthy
+
+  # Camera
+  # --- Camera 0 ---
+  ros2_launch_ros_gst_bridge_0:
+    <<: [*ros2-launch-template]
+    image: unified_autonomy:ros2_nmpc
+    runtime: nvidia
+    command: bash -c "source /opt/ros/humble/setup.bash && gst-launch-1.0 nvarguscamerasrc sensor-id=0 aeantibanding=0 aelock=0 ee-mode=0 tnr-mode=0 gainrange=\"1 4\" ispdigitalgainrange=\"1 1\" exposuretimerange=\"500000 10000000\" ! 'video/x-raw(memory:NVMM),width=720,height=540' ! nvvidconv flip-method=2 ! 'video/x-raw(memory:NVMM),format=I420' ! nvjpegenc quality=80 ! queue ! rosimagesink ros-topic=\"cam_right/image_raw/compressed\" sync_topic=\"/vectornav_driver_node/sync_out_stamp\""
+    volumes:
+      - *x11-volume
+      - ./workspaces/ws_ros_gst_bridge:/workspace
+      - /tmp/argus_socket:/tmp/argus_socket
+      - ${XAUTHORITY:-$HOME/.Xauthority}:/tmp/.Xauthority:ro
+      # Critical: Mount ALL NVIDIA libraries from host to avoid version mismatches
+      - /usr/lib/aarch64-linux-gnu/tegra:/usr/lib/aarch64-linux-gnu/tegra
+      - /usr/lib/aarch64-linux-gnu/tegra-egl:/usr/lib/aarch64-linux-gnu/tegra-egl
+      - /usr/lib/aarch64-linux-gnu/nvidia:/usr/lib/aarch64-linux-gnu/nvidia
+      # Mount GStreamer NVIDIA plugins from host
+      - /usr/lib/aarch64-linux-gnu/gstreamer-1.0:/usr/lib/aarch64-linux-gnu/gstreamer-1.0
+    environment:
+      - XAUTHORITY=/tmp/.Xauthority
+      - GST_PLUGIN_PATH=/usr/lib/aarch64-linux-gnu/gstreamer-1.0
+      - LD_LIBRARY_PATH=/usr/lib/aarch64-linux-gnu/tegra:/usr/lib/aarch64-linux-gnu/tegra-egl:/usr/lib/aarch64-linux-gnu/nvidia:${LD_LIBRARY_PATH}
+      - ROS_DOMAIN_ID=${DOMAIN_ID}
+    devices:
+      # Camera devices
+      - /dev/video0:/dev/video0
+      - /dev/tegra_camera_ctrl:/dev/tegra_camera_ctrl
+      # ISP devices
+      - /dev/nvhost-ctrl-isp:/dev/nvhost-ctrl-isp
+      - /dev/nvhost-ctrl-isp-thi:/dev/nvhost-ctrl-isp-thi
+      # VI (Video Input) devices
+      - /dev/nvhost-ctrl-vi0:/dev/nvhost-ctrl-vi0
+      - /dev/nvhost-ctrl-vi0-thi:/dev/nvhost-ctrl-vi0-thi
+      - /dev/nvhost-ctrl-vi1:/dev/nvhost-ctrl-vi1
+      - /dev/nvhost-ctrl-vi1-thi:/dev/nvhost-ctrl-vi1-thi
+      # NVCSI devices
+      - /dev/nvhost-ctrl-nvcsi:/dev/nvhost-ctrl-nvcsi
+      # GPU devices (critical for EGL)
+      - /dev/nvhost-gpu:/dev/nvhost-gpu
+      - /dev/nvhost-as-gpu:/dev/nvhost-as-gpu
+      - /dev/nvhost-ctrl-gpu:/dev/nvhost-ctrl-gpu
+      - /dev/nvhost-tsg-gpu:/dev/nvhost-tsg-gpu
+      - /dev/dri:/dev/dri
+      # Additional NVHOST devices that may be needed
+      - /dev/nvhost-ctrl-nvdla0:/dev/nvhost-ctrl-nvdla0
+      - /dev/nvhost-ctrl-nvdla1:/dev/nvhost-ctrl-nvdla1
+      - /dev/nvhost-ctrl-pva0:/dev/nvhost-ctrl-pva0
+    group_add:
+      - video
+    privileged: true
+    depends_on:
+      ros1_launch_vectornav:
+        condition: service_healthy
 
   # # --- Camera 1 ---
   # ros2_launch_ros_gst_bridge_1:
@@ -328,26 +328,55 @@ services:
   #     ros1_launch_vectornav:
   #       condition: service_healthy
 
+  # ros1_launch_mavros:
+  #   <<: [*ros1-launch-template]
+  #   image: unified_autonomy:ros1_base
+  #   command: roslaunch robot_bringup px4.launch
+  #   volumes:
+  #     - *robot-bringup-volume
+  #     - ./workspaces/ws_vectornav:/workspace # TODO: This is a hack to get a workspace mounted which has the robot bringup package built.
+  #   devices:
+  #     - /dev/ttyTHS1:/dev/ttyTHS1
+  #     - /dev/ttyTHS2:/dev/ttyTHS2
+  #   group_add:
+  #     - dialout
+
+  # ros2_launch_realsense:
+  #   <<: [*ros2-launch-template]
+  #   image: unified_autonomy:ros2_realsense
+  #   runtime: nvidia
+  #   command: ros2 launch realsense
+  #   volumes:
+  #     - *robot-bringup-volume
+  #     - ./workspaces/ws_vectornav:/workspace # TODO: This is a hack to get a workspace mounted which has the robot bringup package built.
+  #   environment:
+  #     - ROS_DOMAIN_ID=${DOMAIN_ID}
+  #   group_add:
+  #     - video
+  #   privileged: true
+  #   devices:
+  #     - /dev:/dev
+
   # # ==================== PERCEPTION ====================
 
-  # Estimation / SLAM
-  # --- MIMOSA ---
-  ros1_launch_mimosa:
-    <<: [*ros1-launch-template]
-    image: unified_autonomy:ros1_base
-    command: roslaunch robot_bringup mimosa.launch
-    volumes:
-      - *robot-bringup-volume
-      - ./workspaces/ws_mimosa:/workspace
+  # # Estimation / SLAM
+  # # --- MIMOSA ---
+  # ros1_launch_mimosa:
+  #   <<: [*ros1-launch-template]
+  #   image: unified_autonomy:ros1_base
+  #   command: bash -c "roslaunch robot_bringup mimosa.launch"
+  #   volumes:
+  #     - *robot-bringup-volume
+  #     - ./workspaces/ws_mimosa:/workspace
 
-  # --- ETHZ ASL MSF ---
-  ros1_launch_ethzasl_msf:
-    <<: [*ros1-launch-template]
-    image: unified_autonomy:ros1_base
-    command: roslaunch robot_bringup msf_mimosa.launch
-    volumes:
-      - *robot-bringup-volume
-      - ./workspaces/ws_ethzasl_msf:/workspace
+  # # # --- ETHZ ASL MSF ---
+  # ros1_launch_ethzasl_msf:
+  #   <<: [*ros1-launch-template]
+  #   image: unified_autonomy:ros1_base
+  #   command: roslaunch robot_bringup msf_mimosa.launch
+  #   volumes:
+  #     - *robot-bringup-volume
+  #     - ./workspaces/ws_ethzasl_msf:/workspace
 
   # # ==================== PLANNING ====================
 
@@ -356,6 +385,7 @@ services:
   # ros1_launch_gbplanner:
   #   <<: [*ros1-launch-template]
   #   image: unified_autonomy:ros1_gbplanner
+  #   runtime: nvidia
   #   command: roslaunch robot_bringup gbplanner_robot.launch
   #   privileged: true
   #   volumes:
@@ -364,13 +394,13 @@ services:
   #     - ./workspaces/ws_gbplanner:/workspace
   #   devices:
   #     - /dev/dri:/dev/dri
-  #   deploy:  # Add this section
-  #     resources:
-  #       reservations:
-  #         devices:
-  #           - driver: nvidia
-  #             count: all
-  #             capabilities: [gpu]
+  #   # deploy:  # Add this section
+  #   #   resources:
+  #   #     reservations:
+  #   #       devices:
+  #   #         - driver: nvidia
+  #   #           count: all
+  #   #           capabilities: [gpu]
 
   # # ==================== VLM ====================
 
@@ -385,8 +415,25 @@ services:
   #     - *robot-bringup-volume
   #     - ./workspaces/ws_vlm:/workspace
 
+  # # # ================= CONTROL UTILS =================
+  # ros1_launch_control:
+  #   <<: [*ros1-launch-template]
+  #   image: unified_autonomy:ros1_base
+  #   environment:
+  #     - DISPLAY=${DISPLAY}
+  #     - NVIDIA_VISIBLE_DEVICES=all
+  #     - NVIDIA_DRIVER_CAPABILITIES=all
+  #     - QT_X11_NO_MITSHM=1
+  #   command: bash -c "source devel/setup.bash && roslaunch control_launcher magpie.launch cbf_pc_selector:=true nmpc_img_generator:=true rl_pc_selector:=false"
+  #   volumes:
+  #     - ./workspaces/ws_control:/workspace
+  #     - *robot-bringup-volume
+  #     - /tmp/.X11-unix:/tmp/.X11-unix:rw
+  #     - /dev/dri:/dev/dri
+  #   devices:
+  #     - /dev/dri:/dev/dri
 
-  # # # # ==================== NMPC ====================
+  # # # ==================== NMPC ====================
 
   # # # --- NMPC colcon build ---
   # ros2_launch_nmpc:
@@ -402,7 +449,7 @@ services:
   #     - ACADOS_SOURCE_DIR=/home/developer/acados
   #     - LD_LIBRARY_PATH=/usr/local/lib:/home/developer/acados/lib:${LD_LIBRARY_PATH}
   #     - ROS_DOMAIN_ID=${DOMAIN_ID}
-  #   command: bash -c "source /opt/ros/humble/setup.bash && source install/setup.bash && ros2 launch robot_bringup nmpc_full.launch.py"
+  #   command: bash -c "source /opt/ros/humble/setup.bash && source install/setup.bash && ros2 launch robot_bringup nmpc_full_robot.launch.py"
   #   volumes:
   #     - ./workspaces/ws_nmpc:/workspace
   #     - *robot-bringup-volume
@@ -411,8 +458,7 @@ services:
   #   devices:
   #     - /dev/dri:/dev/dri
 
-
-  # # # ==================== CBF ====================
+  # # ==================== CBF ====================
   # ros2_launch_cbf_pc_select:
   #   <<: *ros2-launch-template
   #   image: unified_autonomy:ros2_cbf
@@ -423,7 +469,7 @@ services:
   #     - NVIDIA_DRIVER_CAPABILITIES=all
   #     - QT_X11_NO_MITSHM=1
   #     - ROS_DOMAIN_ID=${DOMAIN_ID}
-  #   command: bash -c "ros2 launch robot_bringup cbf_pc_selector_sim.launch.py"
+  #   command: bash -c "ros2 launch robot_bringup cbf_pc_selector_robot.launch.py"
   #   volumes:
   #     - ./workspaces/ws_cbf:/workspace
   #     - *robot-bringup-volume
@@ -442,7 +488,7 @@ services:
   #     - NVIDIA_DRIVER_CAPABILITIES=all
   #     - QT_X11_NO_MITSHM=1
   #     - ROS_DOMAIN_ID=${DOMAIN_ID}
-  #   command: bash -c "ros2 launch robot_bringup cbf_sim.launch.py"
+  #   command: bash -c "ros2 launch robot_bringup cbf_robot.launch.py"
   #   volumes:
   #     - ./workspaces/ws_cbf:/workspace
   #     - *robot-bringup-volume

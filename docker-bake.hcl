@@ -3,7 +3,7 @@ variable "REGISTRY" {
 }
 
 group "default" {
-  targets = ["ros1_base", "ros2_base", "ros1_gbplanner", "ros2_sim", "cuda_pytorch", "ros2_cuda", "ros2_nmpc", "ros2_cbf", "ros1-bridge-builder", "ros2_ros1_bridge", "ros2_rl", "ros2_vlm", "ros2_heli_sim"]
+  targets = ["ros1_base", "ros2_base", "ros1_gbplanner", "cuda_pytorch", "ros2_cuda", "ros2_nmpc", "ros2_cbf", "ros1-bridge-builder", "ros2_ros1_bridge", "ros2_rl"]
 }
 
 target "default" {
@@ -44,6 +44,17 @@ target "ros2_ros1_bridge" {
 
 
 // Derived images (depend on base images)
+
+// target "ros2_realsense" {
+//   context    = "."
+//   dockerfile = "Dockerfile.ros2_realsense"
+//   tags       = ["${REGISTRY}:ros2_realsense"]
+//   network = "host"
+//   contexts   = {
+//     "unified_autonomy:ros2_base" = "target:ros2_base"
+//   }
+// }
+
 target "ros1_gbplanner" {
   context    = "."
   dockerfile = "Dockerfile.ros1_gbplanner"
@@ -54,15 +65,15 @@ target "ros1_gbplanner" {
   network = "host"
 }
 
-target "ros2_sim" {
-  context    = "."
-  dockerfile = "Dockerfile.ros2_sim"
-  tags       = ["${REGISTRY}:ros2_sim"]
-  contexts   = {
-    "unified_autonomy:ros2_base" = "target:ros2_base"
-  }
-  network = "host"
-}
+// target "ros2_sim" {
+//   context    = "."
+//   dockerfile = "Dockerfile.ros2_sim"
+//   tags       = ["${REGISTRY}:ros2_sim"]
+//   contexts   = {
+//     "unified_autonomy:ros2_base" = "target:ros2_base"
+//   }
+//   network = "host"
+// }
 
 target "cuda_pytorch" {
   context    = "."
@@ -83,7 +94,7 @@ target "ros2_cuda" {
 
 target "ros2_nmpc" {
   context    = "."
-  dockerfile = "Dockerfile.ros2_nmpc"
+  dockerfile = "Dockerfile.ros2_nmpc_arm"
   tags       = ["${REGISTRY}:ros2_nmpc"]
   network = "host"
   contexts   = {

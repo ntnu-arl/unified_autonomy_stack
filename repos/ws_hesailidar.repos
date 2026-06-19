@@ -1,0 +1,5 @@
+repositories:
+  src/HesaiLidar_ROS_2.0:
+    type: git
+    url: git@github.com:ntnu-arl/HesaiLidar_ROS_2.0.git
+    version: 96be4a1fcbf74d41a04c74e12e5d5df694fab693

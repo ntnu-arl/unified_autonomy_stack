@@ -3,7 +3,7 @@
 .PHONY: help
 .DEFAULT_GOAL := help
 
-DOCKER_COMPOSE_FILE ?= docker-compose.yml
+DOCKER_COMPOSE_FILE ?= docker-compose.build.yml
 
 help: ## Show this help message
 	@echo "Available make targets:"
@@ -19,6 +19,9 @@ help: ## Show this help message
 
 images: ## Build all Docker images
 	@docker buildx bake --allow=network.host
+
+images-no-cache: ## Build all Docker images without using cache
+	@docker buildx bake --allow=network.host --no-cache
 
 # ==================== CODE BUILDING ====================
 .PHONY: build build-% build-sequential

@@ -2,7 +2,8 @@
 # Base: Custom PyTorch base image
 # Purpose: Run PyTorch inference for collision_predictor_mpc with ROS 2 integration
 
-FROM unified_autonomy:cuda_pytorch
+# FROM unified_autonomy:cuda_pytorch
+FROM dustynv/l4t-pytorch:r36.2.0
 
 # Prevent interactive prompts
 ENV DEBIAN_FRONTEND=noninteractive

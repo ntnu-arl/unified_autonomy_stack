@@ -1,0 +1,27 @@
+FROM unified_autonomy:ros2_base
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install librealsense build dependencies
+# (matches apt-get install in libuvc_installation.sh - cmake, git, unzip, wget already in base)
+RUN apt-get update && apt-get install -y \
+    libssl-dev \
+    freeglut3-dev \
+    libusb-1.0-0-dev \
+    pkg-config \
+    libgtk-3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Build and install librealsense from source with libuvc backend
+# Based on https://github.com/realsenseai/librealsense/blob/master/scripts/libuvc_installation.sh
+RUN mkdir -p /tmp/librealsense_build && cd /tmp/librealsense_build && \
+    wget https://github.com/realsenseai/librealsense/archive/master.zip && \
+    unzip ./master.zip
+RUN cd /tmp/librealsense_build/librealsense-master && \
+    mkdir build && cd build && \
+    cmake ../ -DFORCE_LIBUVC=true -DCMAKE_BUILD_TYPE=release && \
+    make -j$(nproc) && \
+    make install && \
+    rm -rf /tmp/librealsense_build
+
+CMD ["bash"]

@@ -74,7 +74,7 @@ RUN pip3 install --upgrade pip setuptools wheel
 RUN pip3 install Cython
 
 # Install PyTorch 2.1 with CUDA 11.8
-RUN pip3 install torch==2.1.0 torchvision==0.16.0 --index-url https://download.pytorch.org/whl/cu118
+RUN pip3 install torch==2.0.1 torchvision==0.15.2 --index-url https://download.pytorch.org/whl/cu118
 
 # Build information
 RUN echo "====================================" && \

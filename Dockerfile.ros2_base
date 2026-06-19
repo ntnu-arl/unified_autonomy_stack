@@ -75,6 +75,11 @@ ENV SHELL=/bin/bash
 # Initialize rosdep for the user (rosdep init was already run in the base image)
 RUN rosdep update
 
+# Get and install the custom pts_meta_map
+RUN git clone https://github.com/ntnu-arl/pts_meta_map.git /tmp/pts_meta_map && \
+    cd /tmp/pts_meta_map && \
+    make install
+
 # Enable bash completion
 RUN echo "if [ -f /etc/bash_completion ]; then . /etc/bash_completion; fi" >> ~/.bashrc
 
