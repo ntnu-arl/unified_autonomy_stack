@@ -27,6 +27,8 @@ If you use the Unified Autonomy Stack in your research, please consider citing t
 }
 ```
 
+[![Zenodo DOI](https://zenodo.org/badge/1110342638.svg)](https://doi.org/10.5281/zenodo.20991859)
+
 
 ## Contact
 
