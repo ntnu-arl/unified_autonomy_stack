@@ -1,0 +1,242 @@
+% PERCEPTION
+
+
+@misc{perception_pglio,
+	title = {{PG}-{LIO}: {Photometric}-{Geometric} fusion for {Robust} {LiDAR}-{Inertial} {Odometry}},
+	shorttitle = {{PG}-{LIO}},
+	url = {http://arxiv.org/abs/2506.18583},
+	doi = {10.48550/arXiv.2506.18583},
+	abstract = {LiDAR-Inertial Odometry (LIO) is widely used for accurate state estimation and mapping which is an essential requirement for autonomous robots. Conventional LIO methods typically rely on formulating constraints from the geometric structure sampled by the LiDAR. Hence, in the lack of geometric structure, these tend to become ill-conditioned (degenerate) and fail. Robustness of LIO to such conditions is a necessity for its broader deployment. To address this, we propose PG-LIO, a real-time LIO method that fuses photometric and geometric information sampled by the LiDAR along with inertial constraints from an Inertial Measurement Unit (IMU). This multi-modal information is integrated into a factor graph optimized over a sliding window for real-time operation. We evaluate PG-LIO on multiple datasets that include both geometrically well-conditioned as well as self-similar scenarios. Our method achieves accuracy on par with state-of-the-art LIO in geometrically well-structured settings while significantly improving accuracy in degenerate cases including against methods that also fuse intensity. Notably, we demonstrate only 1 m drift over a 1 km manually piloted aerial trajectory through a geometrically self-similar tunnel at an average speed of 7.5m/s (max speed 10.8 m/s). For the benefit of the community, we shall also release our source code https://github.com/ntnu-arl/mimosa},
+	urldate = {2025-11-30},
+	publisher = {arXiv},
+	author = {Khedekar, Nikhil and Alexis, Kostas},
+	month = jun,
+	year = {2025},
+	note = {arXiv:2506.18583 [cs]},
+	keywords = {Computer Science - Robotics},
+	file = {Preprint PDF:C\:\\Users\\kostas\\Zotero\\storage\\MAKENKX9\\Khedekar and Alexis - 2025 - PG-LIO Photometric-Geometric fusion for Robust LiDAR-Inertial Odometry.pdf:application/pdf;Snapshot:C\:\\Users\\kostas\\Zotero\\storage\\8BTCEYQ3\\2506.html:text/html},
+}
+
+@ARTICLE{perception_jplRadar,
+  author={Nissov, Morten and Edlund, Jeffrey A. and Spieler, Patrick and Padgett, Curtis and Alexis, Kostas and Khattak, Shehryar},
+  journal={IEEE Robotics and Automation Letters}, 
+  title={Robust High-Speed State Estimation for Off-Road Navigation Using Radar Velocity Factors}, 
+  year={2024},
+  volume={9},
+  number={12},
+  pages={11146-11153},
+  keywords={Radar;Sensors;Velocity measurement;Radar measurements;Laser radar;Odometry;State estimation;Robustness;Robot sensing systems;Field robots;localization;sensor fusion},
+  doi={10.1109/lra.2024.3486189}
+}
+
+
+@inproceedings{perception_roamer,
+	title = {{ROAMER}: {Robust} {Offroad} {Autonomy} using {Multimodal} {State} {Estimation} with {Radar} {Velocity} {Integration}},
+	shorttitle = {{ROAMER}},
+	url = {https://ieeexplore.ieee.org/document/10521170},
+	doi = {10.1109/AERO58975.2024.10521170},
+	abstract = {Reliable offroad autonomy requires low-latency, high-accuracy state estimates of pose as well as velocity, which remain viable throughout environments with sub-optimal operating conditions for the utilized perception modalities. As state estimation remains a single point of failure system in the majority of aspiring autonomous systems, failing to address the environmental degradation the perception sensors could potentially experience given the operating conditions, can be a mission-critical shortcoming. In this work, a method for integration of radar velocity information in a LiDAR-inertial odometry solution is proposed, enabling consistent estimation performance even with degraded LiDAR-inertial odometry. The proposed method utilizes the direct velocity-measuring capabilities of an Frequency Modulated Continuous Wave (FMCW) radar sensor to enhance the LiDAR-inertial smoother solution onboard the vehicle through integration of the forward velocity measurement into the graph-based smoother. This leads to increased robustness in the overall estimation solution, even in the absence of LiDAR data. This method was validated by hardware experiments conducted onboard an all-terrain vehicle traveling at high speed, ∼12 m/s, in demanding offroad environments.},
+	urldate = {2025-11-30},
+	booktitle = {2024 {IEEE} {Aerospace} {Conference}},
+	author = {Nissov, Morten and Khattak, Shehryar and Edlund, Jeffrey A. and Padgett, Curtis and Alexis, Kostas and Spieler, Patrick},
+	month = mar,
+	year = {2024},
+	note = {ISSN: 1095-323X},
+	keywords = {Hardware, Laser radar, Radar measurements, Robustness, Sensor systems, Sensors, Vehicle driving},
+	pages = {1--10},
+	file = {Full Text PDF:C\:\\Users\\kostas\\Zotero\\storage\\Z2S8IFH2\\Nissov et al. - 2024 - ROAMER Robust Offroad Autonomy using Multimodal State Estimation with Radar Velocity Integration.pdf:application/pdf},
+}
+
+
+@inproceedings{perception_dlrio,
+	title = {Degradation {Resilient} {LiDAR}-{Radar}-{Inertial} {Odometry}},
+	url = {https://ieeexplore.ieee.org/document/10611444},
+	doi = {10.1109/ICRA57147.2024.10611444},
+	abstract = {Enabling autonomous robots to operate robustly in challenging environments is necessary in a future with increased autonomy. For many autonomous systems, estimation and odometry remains a single point of failure, from which it can often be difficult, if not impossible, to recover. As such robust odometry solutions are of key importance. In this work a method for tightly-coupled LiDAR-Radar-Inertial fusion for odometry is proposed, enabling the mitigation of the effects of LiDAR degeneracy by leveraging a complementary perception modality while preserving the accuracy of LiDAR in well-conditioned environments. The proposed approach combines modalities in a factor graph-based windowed smoother with sensor information-specific factor formulations which enable, in the case of degeneracy, partial information to be conveyed to the graph along the non-degenerate axes. The proposed method is evaluated in real-world tests on a flying robot experiencing degraded conditions including geometric self-similarity as well as obscurant occlusion. For the benefit of the community we release the datasets presented: https://github.com/ntnu-arl/lidar\_degeneracy\_datasets.},
+	urldate = {2025-11-30},
+	booktitle = {2024 {IEEE} {International} {Conference} on {Robotics} and {Automation} ({ICRA})},
+	author = {Nissov, Morten and Khedekar, Nikhil and Alexis, Kostas},
+	month = may,
+	year = {2024},
+	keywords = {Degradation, Estimation, Laser radar, Odometry, Prevention and mitigation, Robot sensing systems, Sensors},
+	pages = {8587--8594},
+	file = {Full Text PDF:C\:\\Users\\kostas\\Zotero\\storage\\XLKM4RIS\\Nissov et al. - 2024 - Degradation Resilient LiDAR-Radar-Inertial Odometry.pdf:application/pdf},
+}
+
+
+% PLANNING
+
+@inproceedings{planning_gvi,
+	title = {Autonomous {Exploration} and {General} {Visual} {Inspection} of {Ship} {Ballast} {Water} {Tanks} {Using} {Aerial} {Robots}},
+	url = {https://ieeexplore.ieee.org/document/10406928},
+	doi = {10.1109/ICAR58858.2023.10406928},
+	abstract = {This paper presents a solution for the autonomous exploration and inspection of Ballast Water Tanks (BWTs) of marine vessels using aerial robots. Ballast tank compartments are critical for a vessel's safety and correspond to confined environments often connected through particularly narrow manholes. The method enables their volumetric exploration combined with visual inspection subject to constraints regarding the viewing distance from a surface. We present evaluation studies in simulation, in a mission consisting of 18 BWT compartments, and in 3 field experiments inside real vessels. The data from one of the experiments is also post-processed to generate semantically-segmented meshes of inspection-important geometries. Geometric models can be associated with onboard camera images for detailed and intuitive analysis.},
+	urldate = {2025-11-30},
+	booktitle = {2023 21st {International} {Conference} on {Advanced} {Robotics} ({ICAR})},
+	author = {Dharmadhikari, Mihir and De Petris, Paolo and Kulkarni, Mihir and Khedekar, Nikhil and Nguyen, Huan and Stene, Arnt Erik and Sjøvold, Eivind and Solheim, Kristian and Gussiaas, Bente and Alexis, Kostas},
+	month = dec,
+	year = {2023},
+	note = {ISSN: 2572-6919},
+	keywords = {Electronic ballasts, Geometry, Inspection, Robot vision systems, Storage management, Visualization, Water},
+	pages = {409--416},
+	file = {Full Text PDF:C\:\\Users\\kostas\\Zotero\\storage\\UC2TQWP4\\Dharmadhikari et al. - 2023 - Autonomous Exploration and General Visual Inspection of Ship Ballast Water Tanks Using Aerial Robots.pdf:application/pdf},
+}
+
+
+@inproceedings{planning_gbplanner2,
+	title = {Autonomous {Teamed} {Exploration} of {Subterranean} {Environments} using {Legged} and {Aerial} {Robots}},
+	url = {https://ieeexplore.ieee.org/document/9812401},
+	doi = {10.1109/ICRA46639.2022.9812401},
+	abstract = {This paper presents a novel strategy for autonomous teamed exploration of subterranean environments using legged and aerial robots. Tailored to the fact that subterranean settings, such as cave networks and underground mines, often involve complex, large-scale and multi-branched topologies, while wireless communication within them can be particularly challenging, this work is structured around the synergy of an onboard exploration path planner that allows for resilient long-term autonomy, and a multi-robot coordination framework. The onboard path planner is unified across legged and flying robots and enables navigation in environments with steep slopes, and diverse geometries. When a communication link is available, each robot of the team shares submaps to a centralized location where a multi-robot coordination framework identifies global frontiers of the exploration space to inform each system about where it should re-position to best continue its mission. The strategy is verified through a field deployment inside an underground mine in Switzerland using a legged and a flying robot collectively exploring for 45 min, as well as a longer simulation study with three systems.},
+	urldate = {2025-11-30},
+	booktitle = {2022 {International} {Conference} on {Robotics} and {Automation} ({ICRA})},
+	author = {Kulkarni, Mihir and Dharmadhikari, Mihir and Tranzatto, Marco and Zimmermann, Samuel and Reijgwart, Victor and De Petris, Paolo and Nguyen, Huan and Khedekar, Nikhil and Papachristos, Christos and Ott, Lionel and Siegwart, Roland and Hutter, Marco and Alexis, Kostas},
+	month = may,
+	year = {2022},
+	keywords = {Legged locomotion, Navigation, Network topology, Robot kinematics, Space missions, Three-dimensional displays, Wireless communication},
+	pages = {3306--3313},
+	file = {Full Text PDF:C\:\\Users\\kostas\\Zotero\\storage\\8K5XRK59\\Kulkarni et al. - 2022 - Autonomous Teamed Exploration of Subterranean Environments using Legged and Aerial Robots.pdf:application/pdf},
+}
+
+
+@article{planning_gbplanner1,
+	title = {Graph-based subterranean exploration path planning using aerial and legged robots},
+	volume = {37},
+	copyright = {© 2020 Wiley Periodicals LLC},
+	issn = {1556-4967},
+	url = {https://onlinelibrary.wiley.com/doi/abs/10.1002/rob.21993},
+	doi = {10.1002/rob.21993},
+	abstract = {Autonomous exploration of subterranean environments remains a major challenge for robotic systems. In response, this paper contributes a novel graph-based subterranean exploration path planning method that is attuned to key topological properties of subterranean settings, such as large-scale tunnel-like networks and complex multibranched topologies. Designed both for aerial and legged robots, the proposed method is structured around a bifurcated local- and global-planner architecture. The local planner utilizes a rapidly exploring random graph to reliably and efficiently identify paths that optimize an exploration gain within a local subspace, while simultaneously avoiding obstacles, respecting applicable traversability constraints and honoring dynamic limitations of the robots. Reflecting the fact that multibranched and tunnel-like networks of underground environments can often lead to dead-ends and accounting for the robot endurance, the global planning layer works in conjunction with the local planner to incrementally build a sparse global graph and is engaged when the system must be repositioned to a previously identified frontier of the exploration space, or commanded to return-to-home. The designed planner is detailed with respect to its computational complexity and compared against state-of-the-art approaches. Emphasizing field experimentation, the method is evaluated within multiple real-life deployments using aerial robots and the ANYmal legged system inside both long-wall and room-and-pillar underground mines in the United States and in Switzerland, as well as inside an underground bunker. The presented results further include missions conducted within the Defense Advanced Research Projects Agency (DARPA) Subterranean Challenge, a relevant competition on underground exploration.},
+	language = {en},
+	number = {8},
+	urldate = {2025-11-30},
+	journal = {Journal of Field Robotics},
+	author = {Dang, Tung and Tranzatto, Marco and Khattak, Shehryar and Mascarich, Frank and Alexis, Kostas and Hutter, Marco},
+	year = {2020},
+	note = {\_eprint: https://onlinelibrary.wiley.com/doi/pdf/10.1002/rob.21993},
+	keywords = {aerial robots, legged robots, path planning, subterranean robotics},
+	pages = {1363--1388},
+	file = {Full Text PDF:C\:\\Users\\kostas\\Zotero\\storage\\39ZRJV2E\\Dang et al. - 2020 - Graph-based subterranean exploration path planning using aerial and legged robots.pdf:application/pdf;Snapshot:C\:\\Users\\kostas\\Zotero\\storage\\KDXWJZRE\\rob.html:text/html},
+}
+
+@inproceedings{planning_voxblox,
+  title={Voxblox: Incremental 3d euclidean signed distance fields for on-board mav planning},
+  author={Oleynikova, Helen and Taylor, Zachary and Fehr, Marius and Siegwart, Roland and Nieto, Juan},
+  booktitle={2017 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},
+  pages={1366--1373},
+  year={2017},
+  organization={IEEE}
+}
+
+@inproceedings{planning_nvblox,
+  title={nvblox: Gpu-accelerated incremental signed distance field mapping},
+  author={Millane, Alexander and Oleynikova, Helen and Wirbel, Emilie and Steiner, Remo and Ramasamy, Vikram and Tingdahl, David and Siegwart, Roland},
+  booktitle={2024 IEEE International Conference on Robotics and Automation (ICRA)},
+  pages={2698--2705},
+  year={2024},
+  organization={IEEE}
+}
+
+@article{planning_traversability,
+  title={Probabilistic terrain mapping for mobile robots with uncertain localization},
+  author={Fankhauser, P{\'e}ter and Bloesch, Michael and Hutter, Marco},
+  journal={IEEE Robotics and Automation Letters},
+  volume={3},
+  number={4},
+  pages={3019--3026},
+  year={2018},
+  publisher={IEEE}
+}
+
+% NAVIGATION
+
+
+@misc{navigation_neuralmpc,
+	title = {Neural {NMPC} through {Signed} {Distance} {Field} {Encoding} for {Collision} {Avoidance}},
+	url = {http://arxiv.org/abs/2511.21312},
+	doi = {10.1177/02783649251401223},
+	abstract = {This paper introduces a neural Nonlinear Model Predictive Control (NMPC) framework for mapless, collision-free navigation in unknown environments with Aerial Robots, using onboard range sensing. We leverage deep neural networks to encode a single range image, capturing all the available information about the environment, into a Signed Distance Function (SDF). The proposed neural architecture consists of two cascaded networks: a convolutional encoder that compresses the input image into a low-dimensional latent vector, and a Multi-Layer Perceptron that approximates the corresponding spatial SDF. This latter network parametrizes an explicit position constraint used for collision avoidance, which is embedded in a velocity-tracking NMPC that outputs thrust and attitude commands to the robot. First, a theoretical analysis of the contributed NMPC is conducted, verifying recursive feasibility and stability properties under fixed observations. Subsequently, we evaluate the open-loop performance of the learning-based components as well as the closed-loop performance of the controller in simulations and experiments. The simulation study includes an ablation study, comparisons with two state-of-the-art local navigation methods, and an assessment of the resilience to drifting odometry. The real-world experiments are conducted in forest environments, demonstrating that the neural NMPC effectively performs collision avoidance in cluttered settings against an adversarial reference velocity input and drifting position estimates.},
+	urldate = {2025-11-30},
+	author = {Jacquet, Martin and Harms, Marvin and Alexis, Kostas},
+	month = nov,
+	year = {2025},
+	note = {arXiv:2511.21312 [cs]},
+	keywords = {Computer Science - Robotics},
+	file = {Preprint PDF:C\:\\Users\\kostas\\Zotero\\storage\\CG6DL7RT\\Jacquet et al. - 2025 - Neural NMPC through Signed Distance Field Encoding for Collision Avoidance.pdf:application/pdf;Snapshot:C\:\\Users\\kostas\\Zotero\\storage\\NAEPNL8C\\2511.html:text/html},
+}
+
+
+
+@inproceedings{navigation_drl,
+	title = {Reinforcement {Learning} for {Collision}-free {Flight} {Exploiting} {Deep} {Collision} {Encoding}},
+	url = {https://ieeexplore.ieee.org/document/10610287},
+	doi = {10.1109/ICRA57147.2024.10610287},
+	abstract = {This work contributes a novel deep navigation policy that enables collision-free flight of aerial robots based on a modular approach exploiting deep collision encoding and reinforcement learning. The proposed solution builds upon a deep collision encoder that is trained on both simulated and real depth images using supervised learning such that it compresses the high-dimensional depth data to a low-dimensional latent space encoding collision information while accounting for the robot size. This compressed encoding is combined with an estimate of the robot’s odometry and the desired target location to train a deep reinforcement learning navigation policy that offers low-latency computation and robust sim2real performance. A set of simulation and experimental studies in diverse environments are conducted and demonstrate the efficiency of the emerged behavior and its resilience in real-life deployments.},
+	urldate = {2025-11-30},
+	booktitle = {2024 {IEEE} {International} {Conference} on {Robotics} and {Automation} ({ICRA})},
+	author = {Kulkarni, Mihir and Alexis, Kostas},
+	month = may,
+	year = {2024},
+	keywords = {Encoding, Image coding, Navigation, Noise, Odometry, Robot sensing systems, Supervised learning},
+	pages = {15781--15788},
+	file = {Full Text PDF:C\:\\Users\\kostas\\Zotero\\storage\\ATA9GVPI\\Kulkarni and Alexis - 2024 - Reinforcement Learning for Collision-free Flight Exploiting Deep Collision Encoding.pdf:application/pdf},
+}
+
+
+@inproceedings{navigation_ccbf,
+	title = {Safe {Quadrotor} {Navigation} {Using} {Composite} {Control} {Barrier} {Functions}},
+	url = {https://ieeexplore.ieee.org/document/11127368},
+	doi = {10.1109/ICRA55743.2025.11127368},
+	abstract = {This paper introduces a safety filter to ensure collision avoidance for multirotor aerial robots. The proposed formalism leverages a single Composite Control Barrier Function from all position constraints acting on a third-order nonlinear representation of the robot's dynamics. We analyze the recursive feasibility of the safety filter under the composite constraint and demonstrate that the infeasible set is negligible. The proposed method allows computational scalability against thousands of constraints and, thus, complex scenes with numerous obstacles. We experimentally demonstrate its ability to guarantee the safety of a quadrotor with an onboard LiDAR, operating in both indoor and outdoor cluttered environments against both naive and adversarial nominal policies.},
+	urldate = {2025-11-30},
+	booktitle = {2025 {IEEE} {International} {Conference} on {Robotics} and {Automation} ({ICRA})},
+	author = {Harms, Marvin and Jacquet, Martin and Alexis, Kostas},
+	month = may,
+	year = {2025},
+	keywords = {Autonomous aerial vehicles, Collision avoidance, Hardware, Laser radar, Navigation, Quadrotors, Robots, Safety, Scalability, Uncertainty},
+	pages = {6343--6349},
+	file = {Full Text PDF:C\:\\Users\\kostas\\Zotero\\storage\\39YGYY6K\\Harms et al. - 2025 - Safe Quadrotor Navigation Using Composite Control Barrier Functions.pdf:application/pdf},
+}
+
+
+@inproceedings{navigation_dce,
+	address = {Cham},
+	title = {Task-{Driven} {Compression} for {Collision} {Encoding} {Based} on {Depth} {Images}},
+	isbn = {978-3-031-47966-3},
+	doi = {10.1007/978-3-031-47966-3_20},
+	abstract = {This paper contributes a novel learning-based method for aggressive task-driven compression of depth images and their encoding as images tailored to collision prediction for robotic systems. A novel 3D image processing methodology is proposed that accounts for the robot’s size in order to appropriately “inflate” the obstacles represented in the depth image and thus obtain the distance that can be traversed by the robot in a collision-free manner along any given ray within the camera frustum. Such depth-and-collision image pairs are used to train a neural network that follows the architecture of Variational Autoencoders to compress-and-transform the information in the original depth image to derive a latent representation that encodes the collision information for the given depth image. We compare our proposed task-driven encoding method with classical task-agnostic methods and demonstrate superior performance for the task of collision image prediction from extremely low-dimensional latent spaces. A set of comparative studies show that the proposed approach is capable of encoding depth image-and-collision image tuples from complex scenes with thin obstacles at long distances better than the classical methods at compression ratios as high as 4050:1.},
+	language = {en},
+	booktitle = {Advances in {Visual} {Computing}},
+	publisher = {Springer Nature Switzerland},
+	author = {Kulkarni, Mihir and Alexis, Kostas},
+	editor = {Bebis, George and Ghiasi, Golnaz and Fang, Yi and Sharf, Andrei and Dong, Yue and Weaver, Chris and Leo, Zhicheng and LaViola Jr., Joseph J. and Kohli, Luv},
+	year = {2023},
+	keywords = {Collision prediction, Robotics, Task-driven compression},
+	pages = {259--273},
+	file = {Full Text PDF:C\:\\Users\\kostas\\Zotero\\storage\\2MYJT57Y\\Kulkarni and Alexis - 2023 - Task-Driven Compression for Collision Encoding Based on Depth Images.pdf:application/pdf},
+}
+
+@article{navigation_aerialgym,
+	title = {Aerial {Gym} {Simulator}: {A} {Framework} for {Highly} {Parallelized} {Simulation} of {Aerial} {Robots}},
+	volume = {10},
+	issn = {2377-3766},
+	shorttitle = {Aerial {Gym} {Simulator}},
+	url = {https://ieeexplore.ieee.org/document/10910148/},
+	doi = {10.1109/LRA.2025.3548507},
+	abstract = {This paper contributes the Aerial Gym Simulator, a highly parallelized, modular framework for simulation and rendering of arbitrary multirotor platforms based on NVIDIA Isaac Gym. Aerial Gym supports the simulation of under-, fully- and over-actuated multirotors offering parallelized geometric controllers, alongside a custom GPU-accelerated rendering framework for ray-casting capable of capturing depth, segmentation and vertex-level annotations from the environment. Multiple examples for key tasks, such as depth-based navigation through reinforcement learning are provided. The comprehensive set of tools developed within the framework makes it a powerful resource for research on learning for control, planning, and navigation using state information as well as exteroceptive sensor observations. Extensive simulation studies are conducted and successful sim2real transfer of trained policies is demonstrated.},
+	number = {4},
+	urldate = {2025-08-26},
+	journal = {IEEE Robotics and Automation Letters},
+	author = {Kulkarni, Mihir and Rehberg, Welf and Alexis, Kostas},
+	month = apr,
+	year = {2025},
+	keywords = {Aerial Systems: perception and autonomy, Autonomous aerial vehicles, Engines, machine learning for robot control, Motors, Navigation, Physics, Planning, reinforcement learning, Rendering (computer graphics), Robot sensing systems, Robots, Training},
+	pages = {4093--4100},
+}
+
+@article{unipilot,
+  title={UniPilot: Enabling GPS-Denied Autonomy Across Embodiments},
+  author={Kulkarni, Mihir and Dharmadhikari, Mihir and Khedekar, Nikhil and Nissov, Morten and Singh, Mohit and Weiss, Philipp and Alexis, Kostas},
+  journal={arXiv preprint arXiv:2509.11793},
+  year={2025}
+}

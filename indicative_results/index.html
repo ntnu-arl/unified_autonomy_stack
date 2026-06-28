@@ -1,0 +1,2264 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Comprehensive documentation for the Unified Autonomy Stack covering SLAM, Planning, Navigation, Control, and Robots.">
+      
+      
+        <meta name="author" content="Autonomous Robots Lab, NTNU">
+      
+      
+      
+        <link rel="prev" href="../hardware/">
+      
+      
+        <link rel="next" href="../prior_results/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../figures/arl_logo.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Indicative Results - Unified Autonomy Stack</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-orange" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#overview" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Unified Autonomy Stack" class="md-header__button md-logo" aria-label="Unified Autonomy Stack" data-md-component="logo">
+      
+  <img src="../figures/arl_logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Unified Autonomy Stack
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Indicative Results
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-orange" data-md-color-accent="blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 2c-1.82 0-3.53.5-5 1.35C8 5.08 10 8.3 10 12s-2 6.92-5 8.65C6.47 21.5 8.18 22 10 22a10 10 0 0 0 10-10A10 10 0 0 0 10 2"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="green" data-md-color-accent="teal"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ntnu-arl/unified_autonomy_stack" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    ntnu-arl/unified_autonomy_stack
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../installation/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../architecture/" class="md-tabs__link">
+          
+  
+  
+  System Overview
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+  Evaluation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../planned_upgrades/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Planned Upgrades
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../report/UnifiedAutonomyStack-Outline/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Technical Report
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Unified Autonomy Stack" class="md-nav__button md-logo" aria-label="Unified Autonomy Stack" data-md-component="logo">
+      
+  <img src="../figures/arl_logo.png" alt="logo">
+
+    </a>
+    Unified Autonomy Stack
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ntnu-arl/unified_autonomy_stack" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    ntnu-arl/unified_autonomy_stack
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    System Overview
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    System Overview
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Perception Module
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Perception Module
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../slam/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-Modal SLAM
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vlm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    VLM
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Planning Module
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Planning Module
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../planning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Planning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Navigation Module
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Navigation Module
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../navigation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Navigation Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nmpc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Neural SDF-MPC
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rl/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deep RL for Navigation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cbf/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Composite CBF Safety Filter
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Simulation and Hardware
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Simulation and Hardware
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../simulation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Simulation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../platforms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Platforms
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hardware/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hardware and Drivers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Evaluation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Indicative Results
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Indicative Results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#robot-platforms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Robot Platforms
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#slam-module-evaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SLAM Module Evaluation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SLAM Module Evaluation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#multi-modal-slam" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-Modal SLAM
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Multi-Modal SLAM">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tunnels-fyllingsdal-runehamar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tunnels (Fyllingsdal &amp; Runehamar)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frozen-lake" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frozen Lake
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#campus-with-fog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Campus with Fog
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vlm-scene-reasoning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        VLM Scene Reasoning
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#navigation-module-evaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Navigation Module Evaluation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Navigation Module Evaluation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#waypoint-navigation-in-forest-navigation-to-waypoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Waypoint Navigation in Forest (Navigation to Waypoint)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#moving-obstacles-in-building-basement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Moving Obstacles in Building Basement
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Moving Obstacles in Building Basement">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sdf-nmpc-ccbf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SDF-NMPC + CCBF
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exrl-ccbf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ExRL + CCBF
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#full-stack-evaluation-aerial-robots" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Full Stack Evaluation - Aerial Robots
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Full Stack Evaluation - Aerial Robots">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#underground-mine-lkken" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Underground Mine (Løkken)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#forest-trondheim" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Forest (Trondheim)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ship-cargo-hold-inspection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ship Cargo Hold (Inspection)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#full-stack-evaluation-legged-robot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Full Stack Evaluation - Legged Robot
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Full Stack Evaluation - Legged Robot">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#underground-mine-lkken_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Underground Mine (Løkken)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#university-building-ntnu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        University Building (NTNU)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../prior_results/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prior Results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datasets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Datasets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../planned_upgrades/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Planned Upgrades
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../report/UnifiedAutonomyStack-Outline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Technical Report
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#robot-platforms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Robot Platforms
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#slam-module-evaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SLAM Module Evaluation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SLAM Module Evaluation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#multi-modal-slam" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-Modal SLAM
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Multi-Modal SLAM">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tunnels-fyllingsdal-runehamar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tunnels (Fyllingsdal &amp; Runehamar)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frozen-lake" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frozen Lake
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#campus-with-fog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Campus with Fog
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vlm-scene-reasoning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        VLM Scene Reasoning
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#navigation-module-evaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Navigation Module Evaluation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Navigation Module Evaluation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#waypoint-navigation-in-forest-navigation-to-waypoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Waypoint Navigation in Forest (Navigation to Waypoint)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#moving-obstacles-in-building-basement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Moving Obstacles in Building Basement
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Moving Obstacles in Building Basement">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sdf-nmpc-ccbf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SDF-NMPC + CCBF
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exrl-ccbf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ExRL + CCBF
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#full-stack-evaluation-aerial-robots" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Full Stack Evaluation - Aerial Robots
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Full Stack Evaluation - Aerial Robots">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#underground-mine-lkken" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Underground Mine (Løkken)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#forest-trondheim" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Forest (Trondheim)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ship-cargo-hold-inspection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ship Cargo Hold (Inspection)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#full-stack-evaluation-legged-robot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Full Stack Evaluation - Legged Robot
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Full Stack Evaluation - Legged Robot">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#underground-mine-lkken_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Underground Mine (Løkken)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#university-building-ntnu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        University Building (NTNU)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+  <h1>Indicative Results</h1>
+
+<h2 id="overview">Overview</h2>
+<iframe width="100%" style="aspect-ratio: 16/9" src="https://www.youtube.com/embed/l8Su8OXsM-E?si=Ip9ObjBuDDnSGgBB" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+<h2 id="robot-platforms">Robot Platforms</h2>
+<p>The following robot platforms are used across these evaluations. In all missions, the full autonomy stack runs fully onboard in real-time.</p>
+<table>
+<thead>
+<tr>
+<th>Platform</th>
+<th>Type</th>
+<th>Compute</th>
+<th>Sensors</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>AR1</strong></td>
+<td>Multirotor (RMF-Owl)</td>
+<td>Khadas Vim4</td>
+<td>Ouster OS0-128 LiDAR, Flir Blackfly 0.4 MP camera, TI IWR6843AOP radar, VectorNav VN-100 IMU</td>
+</tr>
+<tr>
+<td><strong>AR2</strong></td>
+<td>Collision-tolerant quadrotor (0.52×0.52×0.24 m, 2.3 kg)</td>
+<td>UniPilot (Jetson Orin NX)</td>
+<td>RoboSense Airy dome LiDAR, 3× IMX296 cameras, RS-6843AOPU radar, VectorNav VN-100 IMU</td>
+</tr>
+<tr>
+<td><strong>GR1</strong></td>
+<td>Legged robot (ANYmal D, 50 kg)</td>
+<td>UniPilot (Jetson Orin NX)</td>
+<td>RoboSense Airy dome LiDAR, 3× IMX296 cameras, RS-6843AOPU radar, VectorNav VN-100 IMU</td>
+</tr>
+</tbody>
+</table>
+<p>AR1 is used for three of the four SLAM evaluation flights (Fyllingsdal, Runehamar, Frozen Lake). The Campus Fog SLAM dataset was collected with a separate handheld modified UniPilot carrying a Hesai JT-128 LiDAR and uRAD Industrial radar. AR2 is used for all autonomous aerial missions. GR1 is used for all legged missions.</p>
+<h2 id="slam-module-evaluation">SLAM Module Evaluation</h2>
+<iframe width="100%" style="aspect-ratio: 16/9" src="https://www.youtube.com/embed/8nVnXTUH2Hc?si=kK2plzOz8Fwy5qfU" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+<h3 id="multi-modal-slam">Multi-Modal SLAM</h3>
+<p>The SLAM module (MIMOSA-X) is evaluated across four perceptually-degraded environments, comparing uni-modal ablations against the full multi-modal fusion (LiDAR + Radar + IMU, <strong>LRI</strong>) and state-of-the-art baselines. The LRI configuration is the default for all autonomous missions.</p>
+<h4 id="tunnels-fyllingsdal-runehamar">Tunnels (Fyllingsdal &amp; Runehamar)</h4>
+<p><img alt="slam_tunnels" src="../figures/indicative_results/perception/slam_eval_tunnels-1.png" /></p>
+<p><strong>Fyllingsdal tunnel</strong> (~650 m, avg. 6.8 m/s): Long geometrically self-similar sections cause LiDAR-only methods (FAST-LIO2, <strong>Ours-LI</strong>) and AF-RLIO to fail. GaRLIO could not be evaluated as its implementation requires the radar and LiDAR to operate at the same rate, which is not the case here (radar runs at 25 Hz in this experiment). High speeds cause significant deterioration for ROVIO, so <strong>Ours-VI</strong> also fails and <strong>Ours-RVI</strong> does not improve significantly over <strong>Ours-RI</strong>. OpenVINS outperforms ROVIO, <strong>Ours-VI</strong>, <strong>Ours-RVI</strong>, and <strong>Ours-LVI</strong>, but does not reach the accuracy of <strong>Ours-LRI</strong> and <strong>Ours-LRVI</strong>. FAST-LIVO2 achieves performance similar to, but slightly worse than, <strong>Ours-LRI</strong> and <strong>Ours-LRVI</strong>. <strong>Ours-LRI</strong> and <strong>Ours-LRVI</strong> perform best.</p>
+<p><strong>Runehamar tunnel</strong> (~1.4 km): Rough interior supports LiDAR-based methods, but dark unlit sections degrade vision (poor ROVIO, FAST-LIVO2 slightly worse than FAST-LIO2). Sparse radar returns mean radar-only ablations also struggle. Combining LiDAR with radar or vision (<strong>LVI</strong>, <strong>LRI</strong>, <strong>LRVI</strong>) restores robust performance.</p>
+<h4 id="frozen-lake">Frozen Lake</h4>
+<p><img alt="slam_lake" src="../figures/indicative_results/perception/slam_eval_lake-1.png" /></p>
+<p>Once the robot moves away from the bank, the LiDAR returns a nearly planar point cloud (degenerate geometry) and the radar returns fewer than three points per scan (frequently empty). GaRLIO fails immediately as it requires a minimum of three radar points for its RANSAC-based velocity estimate. AF-RLIO functions initially but quickly breaks due to the sparse radar point clouds. Both FAST-LIO2 and FAST-LIVO2 function initially but fail after an aggressive yaw maneuver, accumulating significant error. Vision-based methods (OpenVINS, ROVIO) perform best among the baselines due to good outdoor lighting and a visually feature-rich environment. <strong>Ours-LI</strong>, <strong>Ours-RI</strong>, and <strong>Ours-LRI</strong> remain functional, and vision-inclusive ablations (<strong>VI</strong>, <strong>LVI</strong>, <strong>RVI</strong>, <strong>LRVI</strong>) retain performance comparable to the vision-only baselines.</p>
+<h4 id="campus-with-fog">Campus with Fog</h4>
+<p><img alt="slam_campus_fog" src="../figures/indicative_results/perception/slam_eval_campus_fog-1.png" /></p>
+<p>A handheld UniPilot (670 m trajectory) passes through a fog-filled room, blinding the LiDAR and camera. All LiDAR- and vision-based methods (FAST-LIO2, FAST-LIVO2, ROVIO, OpenVINS, <strong>LI</strong>, <strong>VI</strong>, <strong>LVI</strong>) accumulate large errors in the fog. GaRLIO and AF-RLIO also fail despite having radar, due to RANSAC sparsity issues and reliance on scan registration. Ablations that include radar (<strong>RI</strong>, <strong>RVI</strong>, <strong>LRI</strong>, <strong>LRVI</strong>) remain robust, with LiDAR+radar combinations performing best.</p>
+<h3 id="vlm-scene-reasoning">VLM Scene Reasoning</h3>
+<iframe width="100%" style="aspect-ratio: 16/9" src="https://www.youtube.com/embed/V_HpBROjocQ?si=zQHqMC9HhOxKcgFD" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+<p><img alt="scene_reasoning" src="../figures/indicative_results/perception/scene_reasoning-1.png" /></p>
+<p>The VLM reasoning system combines open-vocabulary 3D semantic mapping (YOLOe / GPT-5 detections fused into a LiDAR voxel grid) with binary visual Q&amp;A (GPT-5, queried every 50 s). End-to-end inference latency across evaluations: <strong>5.66 ± 1.55 s</strong>. The figure shows labeled 3D bounding boxes from the semantic map (left) alongside Yes/No Q&amp;A examples with confidence scores (right), demonstrating the system correctly identifies unsafe fog conditions and scene features.</p>
+<hr />
+<h2 id="navigation-module-evaluation">Navigation Module Evaluation</h2>
+<iframe width="100%" style="aspect-ratio: 16/9" src="https://www.youtube.com/embed/bleQPb1kVI8?si=9TGLBMN8Vmt8bSOx" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+<p>Two navigation policies — Neural MPC (<strong>SDF-NMPC</strong>) and exteroceptive deep RL (<strong>ExRL</strong>) — are paired with a Control Barrier Function (<strong>CCBF</strong>) as a last-resort safety layer. The evaluations below isolate the navigation module before showing full-stack missions.</p>
+<h3 id="waypoint-navigation-in-forest-navigation-to-waypoint">Waypoint Navigation in Forest (Navigation to Waypoint)</h3>
+<p><img alt="safety_forest" src="../figures/indicative_results/perception/safety_forest-1.png" /></p>
+<p>AR2 is tasked to navigate to a waypoint 38 m ahead through trees, with a straight-line reference path but without a map-based planned path from the planner. Three configurations are compared: <strong>SDF-NMPC + CCBF</strong>, <strong>ExRL + CCBF</strong>, and an <strong>unsafe policy + CCBF</strong> (SDF-NMPC with collision-avoidance constraints disabled, so CCBF is the sole safety mechanism).</p>
+<ul>
+<li>Both <strong>SDF-NMPC + CCBF</strong> and <strong>ExRL + CCBF</strong> reach the goal while avoiding all obstacles.</li>
+<li>The CCBF intervened only a few times; when engaged, the robot centroid was on average <strong>0.65 m</strong> from obstacles.</li>
+<li>The unsafe policy + CCBF gets stuck but remains safe — the CCBF prevents collisions but cannot drive progress toward the goal.</li>
+<li><strong>SDF-NMPC</strong> tracks the straight-line reference closely; <strong>ExRL</strong> deviates more but achieves higher speeds, resulting in comparable mission times.</li>
+</ul>
+<h3 id="moving-obstacles-in-building-basement">Moving Obstacles in Building Basement</h3>
+<p>AR2 explores a university basement. At two separate points the planner's path is intentionally blocked by a newly placed obstacle (the planner is not re-triggered). The navigation layer must react in real time.</p>
+<h4 id="sdf-nmpc-ccbf">SDF-NMPC + CCBF</h4>
+<p><img alt="basement_nmpc" src="../figures/indicative_results/perception/basement_nmpc-1.png" /></p>
+<p>SDF-NMPC avoids the unseen obstacles with minimal path deviation, staying close to the reference. Its formulation minimises deviation from the planned path, so clearance is tight but safe.</p>
+<h4 id="exrl-ccbf">ExRL + CCBF</h4>
+<p><img alt="basement_rl" src="../figures/indicative_results/perception/basement_rl-1.png" /></p>
+<p>ExRL avoids the same obstacles with larger lateral deviation since it only aims to reach the end of the planned path, not track it precisely. Both configurations successfully complete the mission without collision.</p>
+<hr />
+<h2 id="full-stack-evaluation-aerial-robots">Full Stack Evaluation - Aerial Robots</h2>
+<iframe width="100%" style="aspect-ratio: 16/9" src="https://www.youtube.com/embed/wpTowfX5t3I?si=cdaaE9iQtoF0TnUX" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+<p>Full-stack missions exercise the coordinated interaction of all three modules: <strong>Perception</strong> (MIMOSA-X SLAM + mapping), <strong>Planning</strong> (graph-based exploration / inspection), and <strong>Navigation</strong> (SDF-NMPC or ExRL + CCBF).</p>
+<h3 id="underground-mine-lkken">Underground Mine (Løkken)</h3>
+<p>AR2 is deployed in a 3-way intersection of the Løkken mine (Norway). The narrowest branch is only 1.5 m wide, lighting is poor, and the dome LiDAR FOV can become degenerate in tight passages.</p>
+<p><strong>SDF-NMPC:</strong></p>
+<p><img alt="mine_aerial_nmpc" src="../figures/indicative_results/perception/mine_aerial_nmpc-1.png" /></p>
+<p>SDF-NMPC tracks the planned path closely, resulting in near-zero CCBF interventions. The robot explores all three branches and returns to the start.</p>
+<p><strong>ExRL:</strong></p>
+<p><img alt="mine_aerial_rl" src="../figures/indicative_results/perception/mine_aerial_rl-1.png" /></p>
+<p>ExRL shows larger local deviations from the planned path but remains safe throughout and finishes faster due to higher attained speeds.</p>
+<p>In the narrowest section near the start, brief oscillations arise from competing SDF-NMPC/ExRL and CCBF objectives (path progress vs. pure safety) — the system always recovers and continues.</p>
+<h3 id="forest-trondheim">Forest (Trondheim)</h3>
+<p>AR2 explores a 120 × 80 m snowy forest (height capped at 2.5 m) with trees of varying density including thin branches.</p>
+<p><strong>SDF-NMPC:</strong></p>
+<p><img alt="forest_aerial_nmpc" src="../figures/indicative_results/perception/forest_aerial_nmpc-1.png" /></p>
+<p><strong>ExRL:</strong></p>
+<p><img alt="forest_aerial_rl" src="../figures/indicative_results/perception/forest_aerial_rl-1.png" /></p>
+<p>SDF-NMPC follows the planner paths more precisely; ExRL generates smoother, faster trajectories with greater deviation. Both complete the mission safely. The CCBF intervened at one instance in the ExRL run (robot centroid <strong>0.68 m</strong> from obstacle, velocity toward obstacle <strong>1.10 m/s</strong>), illustrating the value of the last-resort safety layer near thin branches.</p>
+<h3 id="ship-cargo-hold-inspection">Ship Cargo Hold (Inspection)</h3>
+<p><img alt="cargo_inspection" src="../figures/indicative_results/perception/cargo_inspection-1.png" /></p>
+<p>AR2 is deployed inside a 16 × 13 × 15 m oil tanker cargo hold (mission height capped at 3 m). Starting with no prior map, the robot first explores the hold and then switches to the <strong>Inspection</strong> behavior, systematically viewing mapped surfaces at a desired camera distance. Navigation safety policies were disabled here as the environment has no internal obstacles, allowing more flexible motion during inspection.</p>
+<h2 id="full-stack-evaluation-legged-robot">Full Stack Evaluation - Legged Robot</h2>
+<iframe width="100%" style="aspect-ratio: 16/9"  src="https://www.youtube.com/embed/TC2E_c73yC0?si=pTwSZerzHbgJbjmY" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+<h3 id="underground-mine-lkken_1">Underground Mine (Løkken)</h3>
+<p><img alt="mine_legged" src="../figures/indicative_results/perception/mine_legged-1.png" /></p>
+<p>GR1 explores a mine shaft with narrow cross-sections and side gaps. The dual map representation (volumetric + elevation map) enables traversability-aware planning that handles the uneven terrain. Navigation safety layers are not used here as ANYmal's onboard perceptive locomotion provides analogous near-term collision avoidance.</p>
+<h3 id="university-building-ntnu">University Building (NTNU)</h3>
+<p><img alt="campus_legged" src="../figures/indicative_results/perception/campus_legged-1.png" /></p>
+<p>GR1 explores a full building floor comprising a large open hall with offshoots and a network of narrow corridors (width &lt; 1.5 m). The robot navigates from the open section into the corridors and returns to the start. Multi-modal SLAM provides resilient odometry in the geometrically self-similar narrow passages, and the bifurcated planner (volumetric + elevation maps) handles the large scale variation and branching topology.</p>
+<hr />
+<!-- 
+### Older Results
+
+#### Manual Flight (Runehamar Tunnel)
+
+Here an aerial platform with VectorNav VN-100 IMU, Ouster OS0-128 LiDAR, and Texas Instruments IWR6843AOP Radar flying manually through the Runehamar tunnel in Norway. The performance of the LiDAR-radar-inertial fusion can be see in the aggregated point cloud map. Note, the estimate experiences some vertical drift due to difficulties with respect to bias observability, exaggerated by the large distance traveled by the mission.
+
+![runehamar](figures/indicative_results/result_runehamar_hornbill_lri.png)
+
+**Metadata**:
+
+- Distance: 1444 m
+- Maximum Velocity: 11 m/s
+
+#### Exploration
+
+##### Runehamar Tunnel
+
+In the same environment, we conduct exploration missions with the autonomy stack, executed with the UniPilot module mounted on a quad rotor frame. Here you can see the path it executes, starting at the entrace and continuing onwards into the tunnel, before turning around and returning to home.
+
+![runehamar](figures/indicative_results/result_runehamar_magpie.png)
+
+**Metadata**:
+
+- Distance: 270 m
+- Maximum Velocity: 1.9 m/s
+
+##### Løkken Mine
+
+Here we show an exporation mission conducted with the UniPilot module in the Løkken mine. Note, the estimation and planning performance as it transitions from a small, confined corridor out to a large, open space and back again for homing. In the second figure, the aggregated point cloud of the radar can be seen instead. Clearly, the points are significantly noisier than the corresponding map for the LiDAR.
+
+![lokken](figures/indicative_results/result_lokken.png)
+
+![lokken_radar_accumulated](figures/indicative_results/result_lokken_accumulated_radar_cloud.png)
+
+**Metadata**:
+
+- Distance: 197 m
+- Maximum Velocity: 1.1 m/s
+
+#### Changing the Environment
+
+Although the planner ensures collision free paths, if the environment were to change a given path may no longer be collision free. In this series of experiments, we conduct exploration missions in a cluttered basement corridor, and intentionally sabotage the planner at two distinct points. Both the NMPC- and RL-based safety methods ensure the aerial platform continues safely, when the planners path is compromised.
+
+##### NMPC
+
+Here you can see the NMPC, ensuring safety, by pushing the aerial platform away from the planned path to avoid an object put to cause collision with the path from the planner.
+
+![nmpc](figures/indicative_results/result_nmpc.png)
+
+**Metadata**:
+
+- Distance: 125 m
+- Maximum Velocity: 1.8 m/s
+
+##### RL
+
+Here you can see the RL policy, ensuring safety, by pushing the aerial platform away from the planned path to avoid an object put to cause collision with the path from the planner.
+
+![rl](figures/indicative_results/result_rl.png)
+
+**Metadata**:
+
+- Distance: 125 m
+- Maximum Velocity: 2.1 m/s
+
+#### Legged Robot
+
+The UniPilot with the Unified Autonomy Stack is deployed on the ANYmal D legged robot tasked to explore a part of a university building. The mission involved navigation through both wide open and narrow corridors. The long narrow geometry of the narrow corridors can render a LiDAR only or LiDAR-inertial method to become degenerate. However, through the fusion of radar, the robot is able to resiliently localize and complete the mission.
+
+![anymal](figures/indicative_results/result_anymal.png)
+
+**Metadata**:
+
+- Distance: 873 m
+- Maximum Velocity: 1.1 m/s
+
+--- -->
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../hardware/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Hardware and Drivers">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Hardware and Drivers
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../prior_results/" class="md-footer__link md-footer__link--next" aria-label="Next: Prior Results">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Prior Results
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Rights reserved with the Autonomous Robots Lab, NTNU
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.footer", "navigation.top", "navigation.expand", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../javascripts/mathjax.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
