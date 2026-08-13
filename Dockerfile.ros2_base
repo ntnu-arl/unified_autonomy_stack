@@ -5,7 +5,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install additional development tools and GUI support
 RUN apt-get update && apt-get install -y \
-    ros-humble-desktop-full \
+    ros-humble-ros-base \
     git \
     vim \
     nano \

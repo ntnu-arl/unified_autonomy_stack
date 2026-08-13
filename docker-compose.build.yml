@@ -65,7 +65,7 @@ services:
   # * Naming convention:
   # *   build service: build_<workspace_name>
   # *   ros1_launch service: ros1_launch_<workspace_name>
-  # *   ros2_launch service: ros2_launch_<workspace_name>
+  # *   ros2_launch service: ros2_launch_<workspace_nanmme>
   # *   workspace folder: ws_<workspace_name>
 
   # ==================== DRIVERS ====================
@@ -144,12 +144,12 @@ services:
   #     - *robot-bringup-volume
   #     - ./workspaces/ws_sim:/workspace
 
-  build_heli_bridge:
-    <<: *colcon-build-template
-    image: unified_autonomy:ros2_heli_sim
-    volumes:
-      - *robot-bringup-volume
-      - ./workspaces/ws_sim:/workspace
+  # build_heli_bridge:
+  #   <<: *colcon-build-template
+  #   image: unified_autonomy:ros2_heli_sim
+  #   volumes:
+  #     - *robot-bringup-volume
+  #     - ./workspaces/ws_sim:/workspace
 
   # ==================== PERCEPTION ====================
 
@@ -190,102 +190,102 @@ services:
   #             count: all
   #             capabilities: [gpu]
 
-  # # # ==================== NMPC ====================
+  # # # # ==================== NMPC ====================
 
-  # # --- NMPC colcon build ---
-  build_colconnmpc:
-    <<: *colcon-build-template
-    image: unified_autonomy:ros2_nmpc
-    runtime: nvidia
-    command: bash -c "colcon build --cmake-force-configure --cmake-args -DCMAKE_BUILD_TYPE=Release"
-    user: developer
-    volumes:
-      - ./workspaces/ws_nmpc:/workspace
-      - *robot-bringup-volume
-      - /tmp/.X11-unix:/tmp/.X11-unix:rw
-      - /dev/dri:/dev/dri
-    devices:
-      - /dev/dri:/dev/dri
-    environment:
-      - DISPLAY=${DISPLAY}
-      - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=all
-      - QT_X11_NO_MITSHM=1
-      - ROS_DOMAIN_ID=205
+  # # # --- NMPC colcon build ---
+  # build_colconnmpc:
+  #   <<: *colcon-build-template
+  #   image: unified_autonomy:ros2_nmpc
+  #   runtime: nvidia
+  #   command: bash -c "colcon build --cmake-force-configure --cmake-args -DCMAKE_BUILD_TYPE=Release"
+  #   user: developer
+  #   volumes:
+  #     - ./workspaces/ws_nmpc:/workspace
+  #     - *robot-bringup-volume
+  #     - /tmp/.X11-unix:/tmp/.X11-unix:rw
+  #     - /dev/dri:/dev/dri
+  #   devices:
+  #     - /dev/dri:/dev/dri
+  #   environment:
+  #     - DISPLAY=${DISPLAY}
+  #     - NVIDIA_VISIBLE_DEVICES=all
+  #     - NVIDIA_DRIVER_CAPABILITIES=all
+  #     - QT_X11_NO_MITSHM=1
+  #     - ROS_DOMAIN_ID=205
   
-  build_installnmpc:
-    <<: *colcon-build-template
-    image: unified_autonomy:ros2_nmpc
-    runtime: nvidia
-    command: bash -c "pip3 install -e /workspace/src/sdf-nmpc"
-    # command: bash -c "colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release"
-    user: developer
-    volumes:
-      - ./workspaces/ws_nmpc:/workspace
-      - *robot-bringup-volume
-      - /tmp/.X11-unix:/tmp/.X11-unix:rw
-      - /dev/dri:/dev/dri
-    devices:
-      - /dev/dri:/dev/dri
-    environment:
-      - DISPLAY=${DISPLAY}
-      - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=all
-      - QT_X11_NO_MITSHM=1
-      - ROS_DOMAIN_ID=205
+  # build_installnmpc:
+  #   <<: *colcon-build-template
+  #   image: unified_autonomy:ros2_nmpc
+  #   runtime: nvidia
+  #   command: bash -c "pip3 install -e /workspace/src/sdf-nmpc"
+  #   # command: bash -c "colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release"
+  #   user: developer
+  #   volumes:
+  #     - ./workspaces/ws_nmpc:/workspace
+  #     - *robot-bringup-volume
+  #     - /tmp/.X11-unix:/tmp/.X11-unix:rw
+  #     - /dev/dri:/dev/dri
+  #   devices:
+  #     - /dev/dri:/dev/dri
+  #   environment:
+  #     - DISPLAY=${DISPLAY}
+  #     - NVIDIA_VISIBLE_DEVICES=all
+  #     - NVIDIA_DRIVER_CAPABILITIES=all
+  #     - QT_X11_NO_MITSHM=1
+  #     - ROS_DOMAIN_ID=205
 
-  build_problemnmpc:
-    <<: *colcon-build-template
-    image: unified_autonomy:ros2_nmpc
-    runtime: nvidia
-    command: bash -c "source install/setup.bash && ros2 run sdf_nmpc_ros build_solver.py --ros-args -p cfg:=ros2/nmpc_sim_lidar.yaml"
-    # command: bash -c "source install/setup.bash && ros2 run sdf_nmpc_ros build_solver.py --ros-args -p cfg:=ros2/nmpc_sim_unipilot.yaml"
-    # command: bash -c "source install/setup.bash && ros2 run sdf_nmpc_ros build_solver.py --ros-args -p cfg:=ros2/nmpc_sim_helicopter.yaml"
-    # command: bash -c "source install/setup.bash && ros2 run sdf_nmpc_ros build_solver.py --ros-args -p cfg:=ros2/nmpc_magpie.yaml"
-    user: developer
-    volumes:
-      - ./workspaces/ws_nmpc:/workspace
-      - *robot-bringup-volume
-      - /tmp/.X11-unix:/tmp/.X11-unix:rw
-      - /dev/dri:/dev/dri
-    devices:
-      - /dev/dri:/dev/dri
-    environment:
-      - DISPLAY=${DISPLAY}
-      - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=all
-      - QT_X11_NO_MITSHM=1
-      - ROS_DOMAIN_ID=205
-      - PYTHONPATH=/workspace/src/sdf-nmpc:/home/developer/acados/interfaces/acados_template:${PYTHONPATH}
-      - ACADOS_SOURCE_DIR=/home/developer/acados
-      # CUDA libs first, then GPU drivers, then acados
-      - LD_LIBRARY_PATH=/usr/local/lib:/home/developer/acados/lib:${LD_LIBRARY_PATH}
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
+  # build_problemnmpc:
+  #   <<: *colcon-build-template
+  #   image: unified_autonomy:ros2_nmpc
+  #   runtime: nvidia
+  #   command: bash -c "source install/setup.bash && ros2 run sdf_nmpc_ros build_solver.py --ros-args -p cfg:=ros2/nmpc_sim_lidar.yaml"
+  #   # command: bash -c "source install/setup.bash && ros2 run sdf_nmpc_ros build_solver.py --ros-args -p cfg:=ros2/nmpc_sim_unipilot.yaml"
+  #   # command: bash -c "source install/setup.bash && ros2 run sdf_nmpc_ros build_solver.py --ros-args -p cfg:=ros2/nmpc_sim_helicopter.yaml"
+  #   # command: bash -c "source install/setup.bash && ros2 run sdf_nmpc_ros build_solver.py --ros-args -p cfg:=ros2/nmpc_magpie.yaml"
+  #   user: developer
+  #   volumes:
+  #     - ./workspaces/ws_nmpc:/workspace
+  #     - *robot-bringup-volume
+  #     - /tmp/.X11-unix:/tmp/.X11-unix:rw
+  #     - /dev/dri:/dev/dri
+  #   devices:
+  #     - /dev/dri:/dev/dri
+  #   environment:
+  #     - DISPLAY=${DISPLAY}
+  #     - NVIDIA_VISIBLE_DEVICES=all
+  #     - NVIDIA_DRIVER_CAPABILITIES=all
+  #     - QT_X11_NO_MITSHM=1
+  #     - ROS_DOMAIN_ID=205
+  #     - PYTHONPATH=/workspace/src/sdf-nmpc:/home/developer/acados/interfaces/acados_template:${PYTHONPATH}
+  #     - ACADOS_SOURCE_DIR=/home/developer/acados
+  #     # CUDA libs first, then GPU drivers, then acados
+  #     - LD_LIBRARY_PATH=/usr/local/lib:/home/developer/acados/lib:${LD_LIBRARY_PATH}
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: all
+  #             capabilities: [gpu]
 
 
-  # # ==================== CBF ====================
+  # # # ==================== CBF ====================
 
-  build_cbf:
-    <<: *colcon-build-template
-    image: unified_autonomy:ros2_cbf
-    runtime: nvidia
-    user: developer
-    volumes:
-      - ./workspaces/ws_cbf:/workspace
-      - *robot-bringup-volume
-      - /tmp/.X11-unix:/tmp/.X11-unix:rw
-      - /dev/dri:/dev/dri
-    devices:
-      - /dev/dri:/dev/dri
-    environment:
-      - DISPLAY=${DISPLAY}
-      - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=all
-      - QT_X11_NO_MITSHM=1
-      - ROS_DOMAIN_ID=205
+  # build_cbf:
+  #   <<: *colcon-build-template
+  #   image: unified_autonomy:ros2_cbf
+  #   runtime: nvidia
+  #   user: developer
+  #   volumes:
+  #     - ./workspaces/ws_cbf:/workspace
+  #     - *robot-bringup-volume
+  #     - /tmp/.X11-unix:/tmp/.X11-unix:rw
+  #     - /dev/dri:/dev/dri
+  #   devices:
+  #     - /dev/dri:/dev/dri
+  #   environment:
+  #     - DISPLAY=${DISPLAY}
+  #     - NVIDIA_VISIBLE_DEVICES=all
+  #     - NVIDIA_DRIVER_CAPABILITIES=all
+  #     - QT_X11_NO_MITSHM=1
+  #     - ROS_DOMAIN_ID=205

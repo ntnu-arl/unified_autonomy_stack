@@ -132,12 +132,12 @@ target "ros2_vlm" {
   }
 }
 
-target "ros2_heli_sim" {
-  context    = "."
-  dockerfile = "Dockerfile.ros2_heli_sim"
-  tags       = ["${REGISTRY}:ros2_heli_sim"]
-  contexts   = {
-    "unified_autonomy:ros2_sim" = "target:ros2_sim"
-  }
-  network = "host"
-}
+// target "ros2_heli_sim" {
+//   context    = "."
+//   dockerfile = "Dockerfile.ros2_heli_sim"
+//   tags       = ["${REGISTRY}:ros2_heli_sim"]
+//   contexts   = {
+//     "unified_autonomy:ros2_sim" = "target:ros2_sim"
+//   }
+//   network = "host"
+// }
