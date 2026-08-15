@@ -805,3 +805,49 @@ Brought up `roscore` + `bridge_params` + `ros1_bridge` + `ros2_launch_realsense`
 Test containers/bags from this verification pass were cleaned up afterward except the resulting `.bag`
 file under `./data/`, left in place as evidence (`quail_2026-08-15-11-29-27_0.bag`) — delete it if not
 wanted.
+
+---
+
+## 11. `launch_stack` / `launch_px4` shell aliases
+
+Two shell functions in `~/.bash_aliases` on quail (sourced automatically by `~/.bashrc`, which already had
+a `[ -f ~/.bash_aliases ] && . ~/.bash_aliases` guard — no changes needed there), bundling the two
+commands normally run by hand in separate terminals to bring the robot up:
+
+```bash
+launch_stack() {
+    (cd ~/unified_autonomy_stack && make launch DOCKER_COMPOSE_FILE=docker-compose.robot.yml)
+    make -C ~/unified_autonomy_stack stop
+}
+
+launch_px4() {
+    (cd ~/ros1_docker_dev && ./start.sh && docker exec -it ros1-dev bash -ic "roslaunch rmf_obelix px4_qgc.launch")
+    (cd ~/ros1_docker_dev && ./stop.sh)
+}
+```
+
+Both follow the same shape: run the thing in the foreground, then unconditionally tear it back down once
+it exits — including via Ctrl+C. That's why each is written as two separate statements (not `&&`): `make
+launch`/`roslaunch` exiting non-zero on SIGINT would skip a chained `&&` follow-up, so `make stop`/
+`./stop.sh` needs its own statement to run regardless of how the first one ended. The `cd` happens inside
+a subshell (`( ... )`) so the alias doesn't leave your terminal parked in a different directory afterward.
+
+- **`launch_stack`** — the main `unified_autonomy_stack` (mimosa/gbplanner/NMPC/bridge/recorder/etc, per
+  `docker-compose.robot.yml`). Direct wrapper around the `make launch DOCKER_COMPOSE_FILE=...` / `make
+  stop` pair already documented throughout this file.
+- **`launch_px4`** — the separate `ros1_docker_dev` container (`ros1-dev`, a generic ROS1 Noetic dev
+  environment unrelated to `unified_autonomy_stack`'s own images) that runs `roslaunch rmf_obelix
+  px4_qgc.launch` — the PX4/MAVROS driver connecting to the flight controller. `./start.sh` is idempotent
+  (checks if the container is already running before starting it). This container shares `network_mode:
+  host` with the rest of the stack, so it talks to the same `roscore` as `unified_autonomy_stack` without
+  any extra `ROS_MASTER_URI` configuration.
+
+**One real bug hit and fixed here**: the first version used `docker exec -it ros1-dev bash -c
+"roslaunch ..."`, which failed with `bash: roslaunch: command not found`. `ros1_docker_dev`'s Dockerfile
+sources `/opt/ros/noetic/setup.bash` and the workspace's `devel/setup.bash` from `~/.bashrc` — but
+`~/.bashrc` is only sourced by *interactive* shells, and `bash -c "cmd"` runs non-interactively regardless
+of `docker exec -it`'s `-it` (that only allocates a tty / keeps stdin open; it doesn't make `bash -c`
+itself behave like an interactive shell). **Fix: `bash -c` → `bash -ic`** — the `-i` flag forces bash to
+treat itself as interactive, which makes it source `~/.bashrc` (and therefore `roslaunch`'s `PATH`) before
+running the given command. Verified with `docker exec ros1-dev bash -ic 'which roslaunch'` →
+`/opt/ros/noetic/bin/roslaunch`.
