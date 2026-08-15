@@ -851,3 +851,51 @@ itself behave like an interactive shell). **Fix: `bash -c` → `bash -ic`** — 
 treat itself as interactive, which makes it source `~/.bashrc` (and therefore `roslaunch`'s `PATH`) before
 running the given command. Verified with `docker exec ros1-dev bash -ic 'which roslaunch'` →
 `/opt/ros/noetic/bin/roslaunch`.
+
+---
+
+## 12. Hesai lidar `pkt loss freq` warnings — kernel UDP receive buffer too small (host-level fix)
+
+Seen intermittently in `ros1_launch_hesailidar` logs, sometimes severe (e.g. `12139/14707` — over 80% of
+packets in that second):
+
+```
+ros1_launch_hesailidar-1  | [2026-08-15 12:43:35][WARNING]pkt loss freq: 12139/14707
+```
+
+**Root cause, confirmed (not guessed) via `/proc/net/snmp`**: `Udp: ... RcvbufErrors: 5525` — real kernel-
+level UDP socket receive-buffer overflow. The lidar's dedicated NIC (`enP8p1s0`, `192.168.6.1/24`) showed
+**zero** drops at the interface level (`ip -s link`), so packets were arriving fine; they were being
+dropped *after* the NIC, in the kernel socket buffer, before `hesai_ros_driver`'s parser thread could
+drain them. The system-wide cap, `net.core.rmem_max = 212992` (~208KB), was almost certainly clamping
+down whatever buffer size the driver actually requests via `setsockopt(SO_RCVBUF, ...)` — the kernel
+silently caps any larger request to this ceiling, so raising the app's own buffer request (not exposed in
+`config.yaml` anyway) wouldn't have helped without also raising this.
+
+Secondary/contributing factor: `load average` was `13.08` on an 8-core box at the time — genuine CPU
+oversubscription (NMPC's two Python nodes, `realsense2_camera`, `hesai_ros_driver`, `mimosa_node`, the
+ROS1↔ROS2 bridge, and `gbplanner_node` all contending simultaneously), which makes the parser thread more
+likely to fall behind and let the (too-small) buffer overflow. Jetson was already at `MAXN_SUPER` (max
+performance power mode) — no free power-mode headroom to reach for there.
+
+**Fix (host-level `sysctl`, not a driver/code change)**:
+
+```bash
+sudo sysctl -w net.core.rmem_max=8388608
+sudo sysctl -w net.core.rmem_default=8388608
+# persisted across reboots:
+echo -e "net.core.rmem_max=8388608\nnet.core.rmem_default=8388608" | sudo tee /etc/sysctl.d/99-lidar-rmem.conf
+```
+
+**Verified fixed**, not just applied: restarted the stack (`launch_stack`) after the change, then watched
+both sides over a live ~25-35s window with the lidar actively streaming (~9000 UDP packets/sec):
+- `RcvbufErrors` in `/proc/net/snmp` stayed **exactly flat** (`6205` → `6205`) while `InDatagrams`
+  increased by ~225,000 — heavy real traffic, zero new kernel-level drops.
+- Zero `pkt loss freq` warnings logged by the driver itself over the same window (previously several
+  per second, some over 80% loss).
+- `load average` also dropped to `6.71` post-restart (still nontrivial for 8 cores, but no longer badly
+  oversubscribed — likely just startup settling).
+
+If this recurs after a fresh reboot and the `/etc/sysctl.d/99-lidar-rmem.conf` file is somehow missing or
+not applied (check with `sysctl net.core.rmem_max` — should read `8388608`, not `212992`), that's the
+first thing to check before assuming it's a new problem.
