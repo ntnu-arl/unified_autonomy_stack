@@ -2,6 +2,12 @@ FROM unified_autonomy:ros2_base
 
 ENV DEBIAN_FRONTEND=noninteractive
 
+# apt-file's hook (installed in ros2_base) makes every "apt-get update" also fetch a ~383MB Contents-deb
+# index, used only for apt-file's file search - not needed for package installs. That fetch stalled
+# indefinitely against this network's mirror during this image's build; -o Acquire::IndexTargets::...
+# DefaultEnabled=false did not reliably suppress it, so just remove the hook outright.
+RUN rm -f /etc/apt/apt.conf.d/50apt-file.conf
+
 # Install librealsense build dependencies
 # (matches apt-get install in libuvc_installation.sh - cmake, git, unzip, wget already in base)
 RUN apt-get update && apt-get install -y \
@@ -23,5 +29,17 @@ RUN cd /tmp/librealsense_build/librealsense-master && \
     make -j$(nproc) && \
     make install && \
     rm -rf /tmp/librealsense_build
+
+# realsense2_camera ROS2 wrapper dependencies - not included in ros2_base (ros-humble-ros-base doesn't
+# ship image_transport/compressed_image_transport or these camera-support packages; same gap pattern
+# found on unified_autonomy:ros2_nmpc and ros2_ros1_bridge earlier in this repo's setup).
+RUN apt-get update && apt-get install -y \
+    ros-humble-image-transport \
+    ros-humble-image-transport-plugins \
+    ros-humble-cv-bridge \
+    ros-humble-camera-info-manager \
+    ros-humble-diagnostic-updater \
+    ros-humble-tf2-ros \
+    && rm -rf /var/lib/apt/lists/*
 
 CMD ["bash"]

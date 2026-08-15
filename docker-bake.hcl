@@ -45,15 +45,15 @@ target "ros2_ros1_bridge" {
 
 // Derived images (depend on base images)
 
-// target "ros2_realsense" {
-//   context    = "."
-//   dockerfile = "Dockerfile.ros2_realsense"
-//   tags       = ["${REGISTRY}:ros2_realsense"]
-//   network = "host"
-//   contexts   = {
-//     "unified_autonomy:ros2_base" = "target:ros2_base"
-//   }
-// }
+target "ros2_realsense" {
+  context    = "."
+  dockerfile = "Dockerfile.ros2_realsense"
+  tags       = ["${REGISTRY}:ros2_realsense"]
+  network = "host"
+  contexts   = {
+    "unified_autonomy:ros2_base" = "target:ros2_base"
+  }
+}
 
 target "ros1_gbplanner" {
   context    = "."

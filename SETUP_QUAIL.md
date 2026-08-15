@@ -5,7 +5,9 @@
 committed on both repos (commit `first full working setup on quail` — `434972d` on `robot_bringup`
 branch `quail/main`, `b2bef4b` on `unified_autonomy_stack`) on 2026-08-13. See §9 for tuning/fixes applied
 *after* that commit (currently uncommitted) — most notably a real bug fix that corrects earlier guidance
-in this same document (§2a used to say `flags.simulation: True` was fine to leave as-is; it was not).
+in this same document (§2a used to say `flags.simulation: True` was fine to leave as-is; it was not). §10
+adds a RealSense D455 as an auxiliary, unintegrated sensor (topics only, for rviz/recording) — not part
+of the SLAM/planner/NMPC pipeline itself.
 
 This documents everything that differs from a clean `main` checkout of `unified_autonomy_stack` and
 `robot_bringup` to get **mimosa (SLAM) → gbplanner (planner) → NMPC (control, SDF collision avoidance
@@ -665,3 +667,141 @@ baseline — consistent with preparing for a cautious first real test rather tha
 
 No action needed here — just documenting the change. Worth knowing these are *more* conservative than the
 committed baseline, not less, if comparing behavior against the §6h bench test.
+
+---
+
+## 10. RealSense D455 (USB) — auxiliary camera, topics only, not consumed by the pipeline
+
+quail has a RealSense D455 plugged into a USB port. Requirement: it should come up automatically with
+`make launch`, its topics should exist and be visualizable in rviz, and `bag_rec.launch` should record
+the compressed versions — but **nothing else in this stack (mimosa/gbplanner/NMPC) subscribes to it or
+depends on it**. It's a new, fully independent branch of the pipeline.
+
+### 10a. New image: `Dockerfile.ros2_realsense`
+
+Built from `unified_autonomy:ros2_base`. Two build-time issues hit, both infrastructure, not code:
+
+- **`docker buildx bake` silently rebuilds the parent target from scratch.** The bake target's
+  `contexts = { "unified_autonomy:ros2_base" = "target:ros2_base" }` directive resolves that named
+  context by *rebuilding* `ros2_base`, not reusing the already-built, already-tagged local image — it got
+  stuck 30+ minutes re-running `ros2_base`'s very first `apt-get install ros-humble-ros-base` layer from
+  zero. Confirmed via `docker buildx history ls` showing both Dockerfiles "Running" simultaneously,
+  started at the same instant. **Fix: build with plain `docker build -f Dockerfile.ros2_realsense
+  --network host -t unified_autonomy:ros2_realsense .` instead** — this resolves `FROM
+  unified_autonomy:ros2_base` against the existing local image with no rebuild. (`ros2_realsense` stays
+  defined in `docker-bake.hcl` for consistency with the other targets, it's just not what was actually
+  used to build it here.)
+- **`apt-file`'s hook downloads a ~383MB index on every `apt-get update`, and it stalled indefinitely
+  against this network's mirror.** `ros2_base` installs `apt-file`, which drops
+  `/etc/apt/apt.conf.d/50apt-file.conf` — unlike its sibling `Contents-udeb`/`Contents-dsc` targets, the
+  `Contents-deb` target in that file has no `DefaultEnabled "false"` line, so it fetches by default.
+  Confirmed genuinely stuck (not just slow) via a log timestamp frozen for 11+ minutes and an independent
+  `curl` to the same file timing out with 0 bytes. A `-o
+  Acquire::IndexTargets::deb::Contents-deb::DefaultEnabled=false` command-line override did **not**
+  reliably suppress it on retry. **Fix: `RUN rm -f /etc/apt/apt.conf.d/50apt-file.conf` as the first line
+  in the Dockerfile**, before any `apt-get update`.
+
+Build steps, in order: remove the apt-file hook → install librealsense's build deps (`libssl-dev`,
+`freeglut3-dev`, `libusb-1.0-0-dev`, `pkg-config`, `libgtk-3-dev`) → build+install `librealsense` from
+source (`realsenseai/librealsense`, `-DFORCE_LIBUVC=true` — uses the standard USB Video Class kernel
+driver, no custom kernel patching needed, matches `scripts/libuvc_installation.sh`) → install the ROS2
+wrapper's dependencies (`ros-humble-image-transport`, `ros-humble-image-transport-plugins`,
+`ros-humble-cv-bridge`, `ros-humble-camera-info-manager`, `ros-humble-diagnostic-updater`,
+`ros-humble-tf2-ros` — none of these ship with `ros-humble-ros-base`, same gap pattern already documented
+for `ros2_nmpc`/`ros2_ros1_bridge` elsewhere in this file). `image-transport-plugins` specifically is what
+makes the `/compressed` and `/compressedDepth` sibling topics exist automatically.
+
+### 10b. New workspace: `workspaces/ws_realsense`
+
+`git clone --branch ros2-master --depth 1 https://github.com/realsenseai/realsense-ros.git` into
+`src/realsense-ros/`. Added empty `COLCON_IGNORE` files to `realsense2_rgbd_plugin/` and
+`realsense2_ros_mqtt_bridge/` (not needed, scopes the build to `realsense2_camera` +
+`realsense2_camera_msgs` + `realsense2_description`). `robot_bringup` is also built into this workspace
+(empty `src/robot_bringup/` placeholder + bind-mounted at container runtime, same pattern as every other
+workspace) so the new launch file below is discoverable via `ros2 launch robot_bringup ...`.
+
+### 10c. New launch file: `robot_bringup/launch/ros2/realsense_d455.launch.py`
+
+Thin wrapper around `realsense2_camera`'s own `rs_launch.py`. Color + depth only (no IR, no pointcloud,
+no align — kept light given known compute contention on this Orin NX, see §6h/§7), 640x480 @ 15fps:
+
+- `camera_name: 'd455'`, **`camera_namespace: ''`** — leaving `camera_namespace` at its own default
+  (`'camera'`) doubles up with `camera_name` and produces `/camera/camera/...`-style topics (a known
+  quirk of this package's launch defaults); setting it empty gives clean `/d455/...` topics.
+- Resulting topics: `/d455/color/image_raw(/compressed)`, `/d455/color/camera_info`,
+  `/d455/depth/image_rect_raw(/compressedDepth)`, `/d455/depth/camera_info`.
+
+### 10d. New compose service: `ros2_launch_realsense`
+
+Added to the `AUXILIARY SENSORS` section of `docker-compose.robot.yml`, picked up automatically by `make
+launch` (no Makefile change needed — it matches the `ros2_launch_*` service-name convention already
+scanned for). `privileged: true` + full `/dev:/dev` mount, needed because `-DFORCE_LIBUVC=true` means
+librealsense talks to the camera directly over `libusb` (raw `/dev/bus/usb/*` access), not through a
+kernel v4l2 driver.
+
+**Real bug found and fixed here, not specific to RealSense — worth knowing about for any future
+container that publishes ROS2 data cross-container:** the service also sets **`user: "1000:1000"` +
+`group_add: [root]`** (plus `HOME=/tmp`, same reasoning as `ros1_launch_recorder`'s existing `user:`
+override — uid 1000 has no `/etc/passwd` entry in these images, so `$HOME` defaults to `/`, unwritable).
+This isn't just hardening — it's required for the bridge to actually receive this camera's messages:
+
+- `Dockerfile.ros2_realsense` has no `USER` directive, so its process runs as **root** by default.
+  `ros2_launch_ros1_bridge` (and `ros2_launch_nmpc`) run as **uid 1000** (`developer`, set via their own
+  Dockerfiles). FastDDS's shared-memory transport creates `/dev/shm/fastrtps_*` segments owned by
+  whichever uid published them, readable only by that same uid (or root) — a root-owned publisher's
+  segments are invisible over SHM to a uid-1000 subscriber.
+- **Symptom was silent and easy to miss**: `ros2 topic list` / `rostopic list` on both sides showed the
+  topics fine, `ros2 topic info -v` showed the correct publisher/subscriber pair with compatible QoS, the
+  bridge logged `create bidirectional bridge for topic /d455/...` with no error — but zero messages ever
+  arrived on the ROS1 side (`rostopic hz` sat at "no new messages" indefinitely). Everything about the
+  *control plane* (discovery, topic graph, QoS negotiation) looked correct; only actual data delivery was
+  broken.
+- **Root-caused by elimination**, not guesswork: reproduced the identical failure with a bare
+  `unified_autonomy:ros2_base` container publishing a trivial `std_msgs/String` to a bare
+  `unified_autonomy:ros2_ros1_bridge`-image container — confirming it was a uid mismatch between *any*
+  root-owned publisher and *any* uid-1000 subscriber, nothing specific to realsense, `CompressedImage`, or
+  this bridge config. `docker exec -u root <bridge container> ros2 topic echo ...` immediately started
+  receiving, confirming the fix before touching the compose file.
+- Since `/dev/bus/usb/*` device nodes are `root:root` with group-`rw` (`crw-rw-r--`), **`group_add:
+  [root]`** gives the uid-1000 process the group membership it needs to still open the USB device
+  read-write despite not running as root itself. `privileged: true` alone does not grant this — it only
+  bypasses the cgroup device whitelist, not standard file-permission (DAC) checks on the device node.
+
+### 10e. `bridge_robot.yaml` — 4 new `ros2_to_ros1` entries
+
+```yaml
+- topic: /d455/color/image_raw/compressed
+  type: sensor_msgs/msg/CompressedImage
+- topic: /d455/color/camera_info
+  type: sensor_msgs/msg/CameraInfo
+- topic: /d455/depth/image_rect_raw/compressedDepth
+  type: sensor_msgs/msg/CompressedImage
+- topic: /d455/depth/camera_info
+  type: sensor_msgs/msg/CameraInfo
+```
+
+(`queue_size: 10`, `direction: ros2_to_ros1` on all four, same as the existing `cam_front`/`cam_left`/
+`cam_right` entries this was modeled on.) Depth uses **`compressedDepth`**, not `compressed` — depth is
+16-bit (`Z16`), and `compressedDepth` (PNG-based) is `image_transport`'s correct plugin for that; plain
+`compressed` (JPEG) is for 8-bit color and isn't meaningful for raw depth values. `camera_info` is bridged
+alongside each image so rviz has the intrinsics needed to interpret it properly.
+
+### 10f. `bag_rec.launch` — the same 4 topics added to the recorded topic list
+
+### 10g. Verified live, end to end (not just "should work")
+
+Brought up `roscore` + `bridge_params` + `ros1_bridge` + `ros2_launch_realsense` + `recorder` via compose
+(`--profile launch up -d <services>`), then confirmed at every hop:
+
+- Camera detected: `rs-enumerate-devices` → `RealSense D455`, serial `341222300967`, FW `5.13.0.55`.
+- ROS2 side publishing: `ros2 topic hz` → ~15Hz on both `color/image_raw/compressed` and
+  `depth/image_rect_raw/compressedDepth`.
+- Bridged to ROS1: `rostopic hz` on the same two topics → ~15Hz, matching.
+- Recorder subscribed: recorder log shows `Subscribing to /d455/...` for all 4 topics.
+- Actually landed in the bag: `rosbag info` on the resulting `.bag` shows all 4 topics with ~1430 messages
+  each (`sensor_msgs/CompressedImage` / `sensor_msgs/CameraInfo`), matching every other topic's message
+  count for the same recording window.
+
+Test containers/bags from this verification pass were cleaned up afterward except the resulting `.bag`
+file under `./data/`, left in place as evidence (`quail_2026-08-15-11-29-27_0.bag`) — delete it if not
+wanted.

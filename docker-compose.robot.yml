@@ -281,6 +281,39 @@ services:
       - /dev/dri:/dev/dri
 
 
+  # ==================== AUXILIARY SENSORS (not consumed by mimosa/gbplanner/NMPC) ====================
+
+  # --- RealSense D455 (USB) ---
+  # Started alongside the stack purely so its topics exist (rviz visualization, bag_rec.launch
+  # recording of the /compressed siblings) - nothing else in this stack subscribes to it.
+  # librealsense was built with -DFORCE_LIBUVC=true (see Dockerfile.ros2_realsense), so it talks to
+  # the camera directly over libusb rather than a kernel v4l2 driver - needs raw /dev/bus/usb access,
+  # hence privileged + full /dev mount (matches what was verified working via `rs-enumerate-devices`).
+  #
+  # user 1000:1000 (+ group_add root, for the root:root-owned /dev/bus/usb/* device node) matters
+  # beyond just avoiding running as root: ros2_launch_ros1_bridge also runs as uid 1000, and FastDDS's
+  # shared-memory transport creates /dev/shm segments owned by whatever uid published them, readable
+  # only by that same uid. A root-owned publisher (the image's default, no USER set) is invisible over
+  # SHM to the uid-1000 bridge - topics still show up in `ros2 topic info` (discovery is unaffected),
+  # but zero messages ever arrive - so nothing looks obviously wrong short of checking message flow
+  # directly. Confirmed via cross-container repro: identical failure with any root-owned publisher
+  # talking to any uid-1000 subscriber, unrelated to realsense or CompressedImage specifically.
+  ros2_launch_realsense:
+    <<: *ros2-launch-template
+    image: unified_autonomy:ros2_realsense
+    privileged: true
+    user: "1000:1000"
+    group_add:
+      - root
+    environment:
+      - ROS_DOMAIN_ID=${DOMAIN_ID}
+      - HOME=/tmp
+    command: bash -c "source /opt/ros/humble/setup.bash && source install/setup.bash && ros2 launch robot_bringup realsense_d455.launch.py"
+    volumes:
+      - ./workspaces/ws_realsense:/workspace
+      - *robot-bringup-volume
+      - /dev:/dev
+
   # # # ==================== CBF (disabled - see note above) ====================
   # ros2_launch_cbf_pc_select:
   #   <<: *ros2-launch-template
