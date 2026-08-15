@@ -1,5 +1,12 @@
 # quail setup notes: SLAM + GBPlanner + NMPC on the Orin NX
 
+**Status: this is the first configuration confirmed running mimosa (SLAM) + gbplanner (planner) + NMPC
+(control) together on the real quail hardware**, live-tested via `make launch`. The baseline was
+committed on both repos (commit `first full working setup on quail` — `434972d` on `robot_bringup`
+branch `quail/main`, `b2bef4b` on `unified_autonomy_stack`) on 2026-08-13. See §9 for tuning/fixes applied
+*after* that commit (currently uncommitted) — most notably a real bug fix that corrects earlier guidance
+in this same document (§2a used to say `flags.simulation: True` was fine to leave as-is; it was not).
+
 This documents everything that differs from a clean `main` checkout of `unified_autonomy_stack` and
 `robot_bringup` to get **mimosa (SLAM) → gbplanner (planner) → NMPC (control, SDF collision avoidance
 disabled) → PX4** running on quail. It covers both changes made specifically to wire up NMPC/gbplanner
@@ -233,7 +240,8 @@ for completeness since they're also part of "what differs from `main` on this ro
 - **`launch/ros1/gbplanner_robot.launch`**: `use_sim_time` param `true` → `false` (same sim-default bug).
 - **`config/ros1/bridge_params/bridge_robot.yaml`**: added `/msf_core/odometry_50hz`
   (`nav_msgs/msg/Odometry`, ros1→ros2) to the ROS1↔ROS2 bridge topic list.
-- **New file `config/ros2/quail.yaml`** (NMPC config, not yet in git — untracked): built from magpie's
+- **New file `config/ros2/quail.yaml`** (NMPC config; committed in `434972d`, see §9 for changes made
+  after that commit): built from magpie's
   flight-tested `sdf_nmpc_ros/config/magpie.yaml` as a template, since the two drones share the same
   airframe/motors/props and differ only in lidar/radar:
   - **Copied unchanged** (shared airframe, or fixed by the trained network weights — do not touch):
@@ -256,6 +264,12 @@ for completeness since they're also part of "what differs from `main` on this ro
     (`/sdf_nmpc/set_flag`, backed by `sdfnmpc_node.py`'s `self.sdf_flag`) defaults to `False` on every
     node start — so out of the box NMPC runs as a pure path/reference tracker, no code or config change
     needed. See "NMPC behavior" below.
+  - `flags.simulation` — **correction, see §9**: this document originally said `True` was fine to leave
+    (matching magpie's checked-out config at the time) since it's "separate from ROS `use_sim_time`".
+    That's true for `use_sim_time`, but incomplete — this flag *also* selects the message type
+    `sdfnmpc_node.py` uses for its `cmd/acc` publisher (`Twist` if `True`, `PositionTarget` if `False`),
+    and the bridge only knows how to carry `PositionTarget` on that topic. Must be `False` on real
+    hardware. See §9 for the full explanation and consequence.
 
 ### 2b. Pre-existing local hardware-calibration changes (already on disk, quail-specific — genuinely part
 of "what's needed to set up on this robot", just not from this session)
@@ -592,3 +606,62 @@ After that, every file the recorder creates going forward will be `arl`-owned, s
 **Note**: while investigating this, `data/` was found completely empty (the prior rosbags visible earlier
 in this session, and a `test/` dir, were both gone) — confirmed with the user this was their own manual
 cleanup, unrelated to anything in this fix.
+
+---
+
+## 9. Post-commit: a real bug fix (corrects §2a) and safety-conscious tuning
+
+Everything through §8 was committed on both repos on 2026-08-13 (`434972d` on `robot_bringup`, `b2bef4b`
+on `unified_autonomy_stack`, both messaged "first full working setup on quail"). The changes below were
+made *after* that commit — found via a systematic `git status` sweep of `unified_autonomy_stack` and
+every workspace repo (same method as §3/§6), currently uncommitted on `robot_bringup`. Not made by me;
+documented here for the same reason as the pre-existing hardware-calibration changes in §2b — genuinely
+part of "what's needed to run this on quail."
+
+### 9a. `config/ros2/quail.yaml` — `flags.simulation` must be `False` on real hardware (bug fix, corrects §2a)
+
+```diff
+- simulation: True  # kept True to match magpie's flight-tested config
++ simulation: False  # must be False on real hardware
+```
+
+**This corrects guidance earlier in this document (§2a) and in chat during this session — that guidance
+was wrong.** The reasoning at the time ("`flags.simulation` is separate from ROS `use_sim_time`, magpie
+leaves it `True` in real flights") is true as far as it goes, but incomplete: I verified in
+`sdfnmpc_node.py` that this flag *also* selects the message type used for the `cmd/acc` publisher:
+
+```python
+if self.cfg.flags['simulation']:
+    self.pub_cmd = self.create_publisher(Twist, 'cmd/acc', 1)          # simulation: True
+else:
+    self.pub_cmd = self.create_publisher(PositionTarget, 'cmd/acc', 1)  # simulation: False
+```
+
+`nmpc_full.launch.py` remaps `cmd/acc` → `/mavros/setpoint_raw/local`, and `bridge_robot.yaml` declares
+that bridge topic's type as `mavros_msgs/msg/PositionTarget`. With `simulation: True`, the node actually
+publishes `geometry_msgs/Twist` there instead — a type the bridge has no matching rule for on that topic,
+so it silently fails to bridge it. **Practical consequence: during the "first full working" bench test
+in §6h, `quail.yaml` still had `simulation: True`, meaning NMPC's actual acceleration commands almost
+certainly never reached mavros/PX4** — even though the control loop, reference tracking, and message
+bridging on every *other* topic (odometry, image, horizon_ref, path) all genuinely worked and were
+correctly verified. The pipeline was real; this one topic wasn't reaching the flight controller. Fixed
+now; **retest and re-verify `/mavros/setpoint_raw/local` is actually receiving messages** before relying
+on this for anything beyond another bench test.
+
+### 9b. Safety-conscious speed/bounds tuning (not a bug — deliberate, conservative tuning)
+
+Three related changes, all reducing speed or tightening the operating envelope compared to the committed
+baseline — consistent with preparing for a cautious first real test rather than fixing anything broken:
+
+- **`config/ros2/quail.yaml`**: `ref.vref` (reference velocity) `2.0` → `1.0 m/s`; `ref.wzref` (reference
+  yaw rate) `1` → `0.7 rad/s`.
+- **`config/ros1/gbplanner/robot/planner_control_interface_config.yaml`**: `RobotDynamics.v_max`,
+  `v_init_max`, `v_homing_max` all `1.0` → `0.3 m/s` — gbplanner's own commanded speed cap, roughly a 3x
+  reduction.
+- **`config/ros1/gbplanner/robot/gbplanner_config.yaml`**: `BoundedSpaceParams.Global` exploration volume
+  narrowed from `min_val: [-1.0, -300.0, -2.0], max_val: [32.0, 2.0, 1.75]` (a 302m-long Y-axis range —
+  looks like a leftover long-corridor default) to `min_val: [-2.0, -40.0, 0.5], max_val: [30.0, 2.5, 2.0]`
+  — a much more tightly scoped volume, presumably matching an actual real test space.
+
+No action needed here — just documenting the change. Worth knowing these are *more* conservative than the
+committed baseline, not less, if comparing behavior against the §6h bench test.
