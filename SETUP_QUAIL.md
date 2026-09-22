@@ -965,8 +965,15 @@ to ROS) lives in that plugin, so no camera would start.
      have exposed it - easier to add an include path than change every include site).
   - Nothing in the current simple `gst-launch-1.0` pipeline ever calls `addMeta` (that would need a custom
     GStreamer element/pad-probe reading Argus per-frame metadata, which isn't part of this pipeline), so
-    `getAndRemoveMeta` always returns false - harmless, logged once per frame as `WARN: Metadata not
-    found in PTS Map for PTS: ...`, not an error. The compressed-image publishing itself is unaffected.
+    `getAndRemoveMeta` always returns false - harmless, logged once per frame (per camera, so ~90/sec
+    across all three) as `Metadata not found in PTS Map for PTS: ...`, not an error. The compressed-image
+    publishing itself is unaffected.
+  - **Follow-up fix**: that log line was originally `RCLCPP_WARN`, flooding `launch_stack`'s output on
+    every frame - even though the code comment right above it already said *"log a warning **debug** to
+    avoid spam"*, i.e. the author's own intent was `DEBUG`, just never actually implemented that way.
+    Changed `RCLCPP_WARN` → `RCLCPP_DEBUG` in `rosimagesink.cpp` to match, rebuilt `gst_bridge` only
+    (`colcon build --packages-select gst_bridge`, ~15s). Takes effect on next `launch_stack` - no separate
+    step needed, the container mounts this same rebuilt workspace.
   - **These are local changes only, not pushed anywhere.** `git status` on
     `workspaces/ws_ros_gst_bridge/src/ros-gst-bridge` will show them as uncommitted modifications on top
     of the pinned `dev/exposure_time` checkout. A `vcstool` re-pull or anyone else re-cloning this exact
