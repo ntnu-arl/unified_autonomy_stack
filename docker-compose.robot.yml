@@ -314,6 +314,180 @@ services:
       - *robot-bringup-volume
       - /dev:/dev
 
+  # --- MIPI cameras (front/left/right, via ros-gst-bridge + cam_sync) ---
+  # Same "not consumed downstream" situation as the D455: bridge_robot.yaml and bag_rec.launch have
+  # been wired for /cam_front, /cam_left, /cam_right since before this addition (leftover/aspirational
+  # entries - the driver services just never existed in this compose file). Adapted from the long-
+  # dormant "docker-compose.robot copy.yml" in this same repo, which had camera 0 (right) enabled and
+  # cameras 1/2 (left/front) commented out. Fixed a real bug while enabling them: cameras 1 and 2 both
+  # mapped host /dev/video0 into the container (copy-paste from camera 0's block) instead of their own
+  # /dev/video1 / /dev/video2 - would have made both cameras 1 and 2 read camera 0's feed.
+  #
+  # unified_autonomy:ros2_nmpc is reused here (not a dedicated image) purely because it already has the
+  # CUDA/nvidia-runtime base this needs for nvarguscamerasrc - no image build required. It runs as uid
+  # 1000 (developer) by its own Dockerfile's USER directive already (confirmed via `docker run ... id`),
+  # matching ros2_launch_ros1_bridge's uid - so, unlike the D455's dedicated (root-by-default) image,
+  # no explicit `user:` override is needed here to avoid the FastDDS SHM cross-uid bug documented above.
+  #
+  # Exposure/gain/MIPI parameters (aeantibanding, aelock, gainrange, ispdigitalgainrange,
+  # exposuretimerange, ee-mode, tnr-mode) are nvarguscamerasrc GStreamer element properties, set directly
+  # in each command string below - see SETUP_QUAIL.md for how to change them and where this mechanism
+  # was traced from (ntnu-arl/ros-gst-bridge, branch dev/exposure_time).
+  ros2_launch_ros_gst_bridge_0:
+    <<: [*ros2-launch-template]
+    image: unified_autonomy:ros2_nmpc
+    runtime: nvidia
+    command: bash -c "source /opt/ros/humble/setup.bash && gst-launch-1.0 nvarguscamerasrc sensor-id=0 aeantibanding=0 aelock=0 ee-mode=0 tnr-mode=0 gainrange=\"1 4\" ispdigitalgainrange=\"1 1\" exposuretimerange=\"500000 10000000\" ! 'video/x-raw(memory:NVMM),width=720,height=540' ! nvvidconv flip-method=2 ! 'video/x-raw(memory:NVMM),format=I420' ! nvjpegenc quality=80 ! queue ! rosimagesink ros-topic=\"cam_right/image_raw/compressed\""
+    volumes:
+      - *x11-volume
+      - ./workspaces/ws_ros_gst_bridge:/workspace
+      - /tmp/argus_socket:/tmp/argus_socket
+      - ${XAUTHORITY:-$HOME/.Xauthority}:/tmp/.Xauthority:ro
+      - /usr/lib/aarch64-linux-gnu/tegra:/usr/lib/aarch64-linux-gnu/tegra
+      - /usr/lib/aarch64-linux-gnu/tegra-egl:/usr/lib/aarch64-linux-gnu/tegra-egl
+      - /usr/lib/aarch64-linux-gnu/nvidia:/usr/lib/aarch64-linux-gnu/nvidia
+      - /usr/lib/aarch64-linux-gnu/gstreamer-1.0:/usr/lib/aarch64-linux-gnu/gstreamer-1.0
+    environment:
+      - XAUTHORITY=/tmp/.Xauthority
+      - GST_PLUGIN_PATH=/usr/lib/aarch64-linux-gnu/gstreamer-1.0
+      - LD_LIBRARY_PATH=/usr/lib/aarch64-linux-gnu/tegra:/usr/lib/aarch64-linux-gnu/tegra-egl:/usr/lib/aarch64-linux-gnu/nvidia:${LD_LIBRARY_PATH}
+      - ROS_DOMAIN_ID=${DOMAIN_ID}
+    devices:
+      - /dev/video0:/dev/video0
+      - /dev/tegra_camera_ctrl:/dev/tegra_camera_ctrl
+      - /dev/nvhost-ctrl-isp:/dev/nvhost-ctrl-isp
+      - /dev/nvhost-ctrl-isp-thi:/dev/nvhost-ctrl-isp-thi
+      - /dev/nvhost-ctrl-vi0:/dev/nvhost-ctrl-vi0
+      - /dev/nvhost-ctrl-vi0-thi:/dev/nvhost-ctrl-vi0-thi
+      - /dev/nvhost-ctrl-vi1:/dev/nvhost-ctrl-vi1
+      - /dev/nvhost-ctrl-vi1-thi:/dev/nvhost-ctrl-vi1-thi
+      - /dev/nvhost-ctrl-nvcsi:/dev/nvhost-ctrl-nvcsi
+      - /dev/nvhost-gpu:/dev/nvhost-gpu
+      - /dev/nvhost-as-gpu:/dev/nvhost-as-gpu
+      - /dev/nvhost-ctrl-gpu:/dev/nvhost-ctrl-gpu
+      - /dev/nvhost-tsg-gpu:/dev/nvhost-tsg-gpu
+      - /dev/dri:/dev/dri
+      - /dev/nvhost-ctrl-nvdla0:/dev/nvhost-ctrl-nvdla0
+      - /dev/nvhost-ctrl-nvdla1:/dev/nvhost-ctrl-nvdla1
+      - /dev/nvhost-ctrl-pva0:/dev/nvhost-ctrl-pva0
+    group_add:
+      - video
+    privileged: true
+    depends_on:
+      ros1_launch_vectornav:
+        condition: service_healthy
+
+  ros2_launch_ros_gst_bridge_1:
+    <<: [*ros2-launch-template]
+    image: unified_autonomy:ros2_nmpc
+    runtime: nvidia
+    command: bash -c "source /opt/ros/humble/setup.bash && gst-launch-1.0 nvarguscamerasrc sensor-id=1 aeantibanding=0 aelock=0 ee-mode=0 tnr-mode=0 gainrange=\"1 4\" ispdigitalgainrange=\"1 1\" exposuretimerange=\"500000 10000000\" ! 'video/x-raw(memory:NVMM),width=720,height=540' ! nvvidconv flip-method=2 ! 'video/x-raw(memory:NVMM),format=I420' ! nvjpegenc quality=80 ! queue ! rosimagesink ros-topic=\"cam_left/image_raw/compressed\""
+    volumes:
+      - *x11-volume
+      - ./workspaces/ws_ros_gst_bridge:/workspace
+      - /tmp/argus_socket:/tmp/argus_socket
+      - ${XAUTHORITY:-$HOME/.Xauthority}:/tmp/.Xauthority:ro
+      - /usr/lib/aarch64-linux-gnu/tegra:/usr/lib/aarch64-linux-gnu/tegra
+      - /usr/lib/aarch64-linux-gnu/tegra-egl:/usr/lib/aarch64-linux-gnu/tegra-egl
+      - /usr/lib/aarch64-linux-gnu/nvidia:/usr/lib/aarch64-linux-gnu/nvidia
+      - /usr/lib/aarch64-linux-gnu/gstreamer-1.0:/usr/lib/aarch64-linux-gnu/gstreamer-1.0
+    environment:
+      - XAUTHORITY=/tmp/.Xauthority
+      - GST_PLUGIN_PATH=/usr/lib/aarch64-linux-gnu/gstreamer-1.0
+      - LD_LIBRARY_PATH=/usr/lib/aarch64-linux-gnu/tegra:/usr/lib/aarch64-linux-gnu/tegra-egl:/usr/lib/aarch64-linux-gnu/nvidia:${LD_LIBRARY_PATH}
+      - ROS_DOMAIN_ID=${DOMAIN_ID}
+    devices:
+      # NOTE: reference file had /dev/video0 here (copy-paste bug) - fixed to /dev/video1
+      - /dev/video1:/dev/video1
+      - /dev/tegra_camera_ctrl:/dev/tegra_camera_ctrl
+      - /dev/nvhost-ctrl-isp:/dev/nvhost-ctrl-isp
+      - /dev/nvhost-ctrl-isp-thi:/dev/nvhost-ctrl-isp-thi
+      - /dev/nvhost-ctrl-vi0:/dev/nvhost-ctrl-vi0
+      - /dev/nvhost-ctrl-vi0-thi:/dev/nvhost-ctrl-vi0-thi
+      - /dev/nvhost-ctrl-vi1:/dev/nvhost-ctrl-vi1
+      - /dev/nvhost-ctrl-vi1-thi:/dev/nvhost-ctrl-vi1-thi
+      - /dev/nvhost-ctrl-nvcsi:/dev/nvhost-ctrl-nvcsi
+      - /dev/nvhost-gpu:/dev/nvhost-gpu
+      - /dev/nvhost-as-gpu:/dev/nvhost-as-gpu
+      - /dev/nvhost-ctrl-gpu:/dev/nvhost-ctrl-gpu
+      - /dev/nvhost-tsg-gpu:/dev/nvhost-tsg-gpu
+      - /dev/dri:/dev/dri
+      - /dev/nvhost-ctrl-nvdla0:/dev/nvhost-ctrl-nvdla0
+      - /dev/nvhost-ctrl-nvdla1:/dev/nvhost-ctrl-nvdla1
+      - /dev/nvhost-ctrl-pva0:/dev/nvhost-ctrl-pva0
+    group_add:
+      - video
+    privileged: true
+    depends_on:
+      ros1_launch_vectornav:
+        condition: service_healthy
+
+  ros2_launch_ros_gst_bridge_2:
+    <<: [*ros2-launch-template]
+    image: unified_autonomy:ros2_nmpc
+    runtime: nvidia
+    command: bash -c "source /opt/ros/humble/setup.bash && gst-launch-1.0 nvarguscamerasrc sensor-id=2 aeantibanding=0 aelock=0 ee-mode=0 tnr-mode=0 gainrange=\"1 4\" ispdigitalgainrange=\"1 1\" exposuretimerange=\"500000 10000000\" ! 'video/x-raw(memory:NVMM),width=1440,height=540' ! nvvidconv flip-method=2 ! 'video/x-raw(memory:NVMM),format=I420' ! nvjpegenc quality=80 ! queue ! rosimagesink ros-topic=\"cam_front/image_raw/compressed\""
+    volumes:
+      - *x11-volume
+      - ./workspaces/ws_ros_gst_bridge:/workspace
+      - /tmp/argus_socket:/tmp/argus_socket
+      - ${XAUTHORITY:-$HOME/.Xauthority}:/tmp/.Xauthority:ro
+      - /usr/lib/aarch64-linux-gnu/tegra:/usr/lib/aarch64-linux-gnu/tegra
+      - /usr/lib/aarch64-linux-gnu/tegra-egl:/usr/lib/aarch64-linux-gnu/tegra-egl
+      - /usr/lib/aarch64-linux-gnu/nvidia:/usr/lib/aarch64-linux-gnu/nvidia
+      - /usr/lib/aarch64-linux-gnu/gstreamer-1.0:/usr/lib/aarch64-linux-gnu/gstreamer-1.0
+    environment:
+      - XAUTHORITY=/tmp/.Xauthority
+      - GST_PLUGIN_PATH=/usr/lib/aarch64-linux-gnu/gstreamer-1.0
+      - LD_LIBRARY_PATH=/usr/lib/aarch64-linux-gnu/tegra:/usr/lib/aarch64-linux-gnu/tegra-egl:/usr/lib/aarch64-linux-gnu/nvidia:${LD_LIBRARY_PATH}
+      - ROS_DOMAIN_ID=${DOMAIN_ID}
+    devices:
+      # NOTE: reference file had /dev/video0 here (copy-paste bug) - fixed to /dev/video2
+      - /dev/video2:/dev/video2
+      - /dev/tegra_camera_ctrl:/dev/tegra_camera_ctrl
+      - /dev/nvhost-ctrl-isp:/dev/nvhost-ctrl-isp
+      - /dev/nvhost-ctrl-isp-thi:/dev/nvhost-ctrl-isp-thi
+      - /dev/nvhost-ctrl-vi0:/dev/nvhost-ctrl-vi0
+      - /dev/nvhost-ctrl-vi0-thi:/dev/nvhost-ctrl-vi0-thi
+      - /dev/nvhost-ctrl-vi1:/dev/nvhost-ctrl-vi1
+      - /dev/nvhost-ctrl-vi1-thi:/dev/nvhost-ctrl-vi1-thi
+      - /dev/nvhost-ctrl-nvcsi:/dev/nvhost-ctrl-nvcsi
+      - /dev/nvhost-gpu:/dev/nvhost-gpu
+      - /dev/nvhost-as-gpu:/dev/nvhost-as-gpu
+      - /dev/nvhost-ctrl-gpu:/dev/nvhost-ctrl-gpu
+      - /dev/nvhost-tsg-gpu:/dev/nvhost-tsg-gpu
+      - /dev/dri:/dev/dri
+      - /dev/nvhost-ctrl-nvdla0:/dev/nvhost-ctrl-nvdla0
+      - /dev/nvhost-ctrl-nvdla1:/dev/nvhost-ctrl-nvdla1
+      - /dev/nvhost-ctrl-pva0:/dev/nvhost-ctrl-pva0
+    group_add:
+      - video
+    privileged: true
+    depends_on:
+      ros1_launch_vectornav:
+        condition: service_healthy
+
+  # --- cam_sync (ROS1) ---
+  # Consumes the bridged /cam_{front,left,right}/image_raw/compressed topics above plus VectorNav's
+  # hardware sync_out_stamp, republishing time-synchronized copies to /cam_*/synchronized/image_raw/
+  # compressed - purely for better-quality recording/viz (bag_rec.launch already expects these), not
+  # consumed by mimosa/gbplanner/NMPC.
+  ros1_launch_cam_sync:
+    <<: [*ros1-launch-template]
+    image: unified_autonomy:ros1_base
+    command: roslaunch robot_bringup cam_sync.launch
+    volumes:
+      - *robot-bringup-volume
+      - ./workspaces/ws_cam_sync:/workspace
+    # explicit depends_on here REPLACES (not merges with) *ros1-launch-template's own roscore
+    # dependency (the recurring YAML merge-key gotcha documented elsewhere in this file) - so both
+    # conditions have to be listed here, not just the new one.
+    depends_on:
+      ros1_launch_roscore:
+        condition: service_healthy
+      ros1_launch_vectornav:
+        condition: service_healthy
+
   # # # ==================== CBF (disabled - see note above) ====================
   # ros2_launch_cbf_pc_select:
   #   <<: *ros2-launch-template

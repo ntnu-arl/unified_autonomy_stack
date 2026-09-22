@@ -899,3 +899,126 @@ both sides over a live ~25-35s window with the lidar actively streaming (~9000 U
 If this recurs after a fresh reboot and the `/etc/sysctl.d/99-lidar-rmem.conf` file is somehow missing or
 not applied (check with `sysctl net.core.rmem_max` — should read `8388608`, not `212992`), that's the
 first thing to check before assuming it's a new problem.
+
+---
+
+## 13. Three MIPI cameras (cam_front/cam_left/cam_right) — launched, not consumed downstream
+
+quail now has 3 MIPI cameras connected (`/dev/video0`/`1`/`2` → right/left/front). `bridge_robot.yaml`
+and `bag_rec.launch` were *already* wired for `/cam_front`, `/cam_left`, `/cam_right` before this pass
+(leftover/aspirational entries) - the actual driver services just never existed in this compose file.
+Same situation as the D455 in §10: started alongside the stack purely for visualization/recording, not
+consumed by mimosa/gbplanner/NMPC.
+
+### 13a. Source: a long-dormant reference file in this same repo
+
+`docker-compose.robot copy.yml` (top-level, `git`-untracked-looking stray file, last touched 2026-06-30)
+had all three camera services drafted, but only camera 0 uncommitted/enabled - 1 and 2 were commented out
+and never finished. **Real bug found while enabling them**: both commented-out blocks mapped host
+`/dev/video0` into the container (copy-pasted from camera 0's own block) instead of their own
+`/dev/video1` / `/dev/video2` - would have made cameras 1 and 2 both silently show camera 0's feed had
+they been enabled as-is. Fixed while porting into `docker-compose.robot.yml`'s `AUXILIARY SENSORS`
+section (`ros2_launch_ros_gst_bridge_0/1/2`).
+
+Each runs `gst-launch-1.0 nvarguscamerasrc sensor-id=<N> ... ! nvjpegenc ! rosimagesink
+ros-topic="cam_<name>/image_raw/compressed"` directly as the container command (no ROS2 launch file - the
+image driver is a raw GStreamer CLI pipeline). Reuses `unified_autonomy:ros2_nmpc` (not a dedicated
+image) purely for its CUDA/nvidia-runtime base - no image build needed. That image already runs as uid
+1000 (`developer`) via its own Dockerfile `USER` directive (confirmed with `docker run ... id`), matching
+`ros2_launch_ros1_bridge`'s uid - so, unlike the D455 (§10d), no explicit `user:` override was needed to
+avoid the root-vs-uid1000 FastDDS SHM bug documented there.
+
+MIPI/exposure parameters (`aeantibanding`, `aelock`, `gainrange`, `ispdigitalgainrange`,
+`exposuretimerange`, `ee-mode`, `tnr-mode`) are `nvarguscamerasrc` GStreamer element properties, set
+directly on the command line in each service. This is the mechanism asked about earlier in this session
+(see the chat transcript / `ntnu-arl/ros-gst-bridge`) - auto-exposure specifically is `aelock=0` (0 =
+auto-exposure **enabled**, counterintuitively - `aelock=1` would freeze/lock exposure).
+
+### 13b. Real blocker hit and fixed: a lost custom library, `libptsmetamap.so`
+
+The workspace (`workspaces/ws_ros_gst_bridge`, pinned to `ntnu-arl/ros-gst-bridge` branch
+`dev/exposure_time`) failed at runtime with `Failed to load plugin '.../librosgstbridge.so':
+libptsmetamap.so: cannot open shared object file` - `rosimagesink` (the actual element publishing images
+to ROS) lives in that plugin, so no camera would start.
+
+- `gst_bridge/CMakeLists.txt` declared `find_library(PTS_META_LIB NAMES ptsmetamap PATHS /usr/lib)` with
+  a `FATAL_ERROR` if not found - i.e. it expected `libptsmetamap.so` **pre-installed as a system library**,
+  not built by this repo. It wasn't a stale-build problem: confirmed via `find / -iname 'libptsmetamap*'`
+  on both quail's host filesystem and inside `unified_autonomy:ros2_nmpc` - it genuinely doesn't exist
+  anywhere reachable. The existing `install/` directory only worked before because it was built at some
+  point when this library *did* exist somewhere (a now-gone container image, most likely), and was never
+  rebuilt since.
+- Its header (`gst_bridge/include/gst_bridge/pts_meta_map.h`) wasn't even committed on `dev/exposure_time`
+  - only on a *later*, separate branch (`dev/paperplane`, commit `a7fea4d`, "git local changes to new
+    branch"). That branch still has the same missing-library problem, so switching to it doesn't help.
+- **The class is tiny and fully specified by that header** (`PtsMetaMap`: a Meyer's-singleton, mutex-
+  guarded `std::map<pts, FrameMetaData>` with `addMeta`/`getAndRemoveMeta`) - small enough to reimplement
+  with confidence rather than treat as an unrecoverable black box. **Fix applied**:
+  1. Pulled `pts_meta_map.h` from `dev/paperplane`'s `a7fea4d` into this checkout at its proper location
+     (`gst_bridge/include/gst_bridge/pts_meta_map.h` - it wasn't there on `dev/exposure_time`).
+  2. Added `gst_bridge/src/pts_meta_map.cpp`, a straightforward implementation of exactly that header's
+     declared interface (nothing more).
+  3. Edited `gst_bridge/CMakeLists.txt`: removed the `find_library`/`FATAL_ERROR` block and both
+     `${PTS_META_LIB}` linker references, added `pts_meta_map.cpp` to the `gst_bridge` target's sources,
+     and added `include/gst_bridge` as an extra include dir (the existing `.cpp` files `#include
+     <pts_meta_map.h>` bare, not `<gst_bridge/pts_meta_map.h>`, matching how a system-wide install would
+     have exposed it - easier to add an include path than change every include site).
+  - Nothing in the current simple `gst-launch-1.0` pipeline ever calls `addMeta` (that would need a custom
+    GStreamer element/pad-probe reading Argus per-frame metadata, which isn't part of this pipeline), so
+    `getAndRemoveMeta` always returns false - harmless, logged once per frame as `WARN: Metadata not
+    found in PTS Map for PTS: ...`, not an error. The compressed-image publishing itself is unaffected.
+  - **These are local changes only, not pushed anywhere.** `git status` on
+    `workspaces/ws_ros_gst_bridge/src/ros-gst-bridge` will show them as uncommitted modifications on top
+    of the pinned `dev/exposure_time` checkout. A `vcstool` re-pull or anyone else re-cloning this exact
+    ref would **not** have this fix. Worth pushing upstream to `ntnu-arl/ros-gst-bridge` at some point -
+    ask around before this gets silently lost the next time someone rebuilds this workspace from scratch.
+
+### 13c. `sync_topic` property doesn't exist on this branch - removed from the pipeline
+
+The reference file's `rosimagesink` invocations also set `sync_topic="/vectornav_driver_node/sync_out_stamp"`.
+That property doesn't exist on `dev/exposure_time` (confirmed via `gst-inspect-1.0 rosimagesink` - not in
+the element's property list) - it was only added on the later `dev/paperplane` branch (same commit,
+`a7fea4d`, that added the header above), which was never what `ws_ros_gst_bridge.repos` pins to. The
+reference file was seemingly drafted against code that was never actually what got built/run - consistent
+with it having sat half-finished (only 1 of 3 cameras enabled, plus the device-mapping bug in §13a) since
+June. **Removed `sync_topic=...` from all three pipeline command strings** rather than chase the
+`dev/paperplane` branch (which reintroduces the exact same missing-library problem in §13b, among unknown
+other diffs). No functional loss for this stack: `cam_sync` (§13d below) does its own synchronization by
+subscribing to `/vectornav_driver_node/sync_out_stamp` directly, independent of this property.
+
+### 13d. `cam_sync` (ROS1) - new compose service
+
+Added `ros1_launch_cam_sync` (image `unified_autonomy:ros1_base`, `roslaunch robot_bringup
+cam_sync.launch`, workspace `ws_cam_sync` - already existed pre-built on quail, `main` branch of
+`ntnu-arl/cam_sync`, untouched). Consumes the bridged `/cam_{front,left,right}/image_raw/compressed` +
+`.../compressed_exposure_time` topics plus VectorNav's `sync_out_stamp`, republishes time-synchronized
+copies to `/cam_*/synchronized/image_raw/compressed` (what `bag_rec.launch` already expected).
+
+**Gotcha hit and fixed**: explicitly setting `depends_on:` on a service built from `*ros1-launch-template`
+**replaces** (not merges with) that template's own `ros1_launch_roscore` dependency - the same YAML
+merge-key semantics documented elsewhere in this file. Had to list both `ros1_launch_roscore` and
+`ros1_launch_vectornav` explicitly in `ros1_launch_cam_sync`'s `depends_on`, not just the new one.
+
+### 13e. `bag_rec.launch` - added the `compressed_exposure_time` topics
+
+`/cam_front`, `/cam_left`, `/cam_right`'s `image_raw/compressed` and `synchronized/image_raw/compressed`
+were already recorded; added the `.../image_raw/compressed_exposure_time` (`sensor_msgs/TimeReference`)
+companion topic for all three, since the bridge already carries it and it's negligible size.
+
+### 13f. Verified live, end to end
+
+Brought up `roscore` + `bridge_params` + `ros1_bridge` + `vectornav` + all 3 camera services + `cam_sync`
++ `recorder` via compose. Confirmed at every hop:
+- All 3 `nvarguscamerasrc` pipelines actively running (GStreamer progress clock advancing, `GST_ARGUS`
+  gain/exposure range logs present, no pipeline errors).
+- ROS1-side `rostopic hz`: `/cam_front/image_raw/compressed` ~30Hz; `/cam_front/synchronized/image_raw/
+  compressed` (via `cam_sync`) ~20Hz (lower/jittered - expected, gated by VectorNav trigger timing, not a
+  problem).
+- Recorder log shows `Subscribing to` all 9 relevant topics (3 cameras × {raw, exposure_time,
+  synchronized}).
+- Bag file actively growing (`quail_2026-09-22-12-14-54_0.bag.active`, ~393MB after a few minutes) while
+  this was live-tested.
+
+Left running after verification (actively recording real camera data at the time) rather than torn back
+down - stop it the normal way (`launch_stack`'s Ctrl+C → `make stop`, or `make stop` directly) whenever
+you're done with this session's recording.
