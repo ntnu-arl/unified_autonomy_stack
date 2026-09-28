@@ -3,7 +3,7 @@ variable "REGISTRY" {
 }
 
 group "default" {
-  targets = ["ros1_base", "ros2_base", "ros1_gbplanner", "ros2_sim", "cuda_pytorch", "ros2_cuda", "ros2_nmpc", "ros2_cbf", "ros1-bridge-builder", "ros2_ros1_bridge", "ros2_rl", "ros2_vlm", "ros2_heli_sim"]
+  targets = ["ros1_base", "ros2_base", "ros1_gbplanner", "ros2_sim", "cuda_pytorch", "ros2_cuda", "ros2_nmpc", "ros2_cbf", "ros1-bridge-builder", "ros2_ros1_bridge", "ros2_rl", "ros2_vlm", "ros2_heli_sim", "ros2_agentic_uas"]
 }
 
 target "default" {
@@ -116,6 +116,17 @@ target "ros2_vlm" {
   dockerfile = "Dockerfile.ros2_vlm"
   tags       = ["${REGISTRY}:ros2_vlm"]
   network = "host"
+  contexts   = {
+    "unified_autonomy:ros2_base" = "target:ros2_base"
+  }
+}
+
+target "ros2_agentic_uas" {
+  context    = "."
+  dockerfile = "Dockerfile.ros2_agentic_uas"
+  tags       = ["${REGISTRY}:ros2_agentic_uas"]
+  network    = "host"
+  ssh        = ["default"]
   contexts   = {
     "unified_autonomy:ros2_base" = "target:ros2_base"
   }

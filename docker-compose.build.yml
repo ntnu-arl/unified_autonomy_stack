@@ -151,7 +151,7 @@ services:
     <<: [*system-template]
     image: unified_autonomy:ros1_base
     profiles: ["build"]
-    command: bash -c "catkin config -DCMAKE_BUILD_TYPE=Release -DGTSAM_POSE3_EXPMAP=ON -DGTSAM_ROT3_EXPMAP=ON -DGTSAM_USE_QUATERNIONS=ON -DGTSAM_USE_SYSTEM_EIGEN=ON -DGTSAM_BUILD_WITH_MARCH_NATIVE=OFF -DGTSAM_BUILD_UNSTABLE=ON -DGTSAM_BUILD_EXAMPLES_ALWAYS=OFF -DGTSAM_WITH_TBB=OFF && catkin build"
+    command: bash -c "catkin config -DCMAKE_BUILD_TYPE=Release -DGTSAM_POSE3_EXPMAP=ON -DGTSAM_ROT3_EXPMAP=ON -DGTSAM_USE_QUATERNIONS=ON -DGTSAM_USE_SYSTEM_EIGEN=ON -DGTSAM_BUILD_WITH_MARCH_NATIVE=OFF -DGTSAM_BUILD_WITH_WERROR=OFF -DGTSAM_BUILD_UNSTABLE=ON -DGTSAM_BUILD_EXAMPLES_ALWAYS=OFF -DGTSAM_WITH_TBB=OFF && catkin build"
     volumes:
       - *robot-bringup-volume
       - ./workspaces/ws_mimosa:/workspace
@@ -165,6 +165,12 @@ services:
       - ./workspaces/ws_ethzasl_msf:/workspace
 
   # --- VLM ---
+  build_agentic_uas:
+    <<: *colcon-build-template
+    image: unified_autonomy:ros2_agentic_uas
+    volumes:
+      - ./workspaces/ws_agentic_uas:/workspace
+
   build_vlm:
     <<: [*colcon-build-template]
     image: unified_autonomy:ros2_vlm
@@ -230,8 +236,10 @@ services:
     <<: *colcon-build-template
     image: unified_autonomy:ros2_nmpc
     runtime: nvidia
-    command: bash -c "source install/setup.bash && ros2 run sdf_nmpc_ros build_solver.py --ros-args -p cfg:=ros2/nmpc_sim_lidar.yaml"
-    # command: bash -c "source install/setup.bash && ros2 run sdf_nmpc_ros build_solver.py --ros-args -p cfg:=ros2/nmpc_sim_unipilot.yaml"
+    depends_on:
+      build_colconnmpc:
+        condition: service_completed_successfully
+    command: bash -c "source install/setup.bash && ros2 run sdf_nmpc_ros build_solver.py --ros-args -p cfg:=ros2/nmpc_sim_lidar.yaml && ros2 run sdf_nmpc_ros build_solver.py --ros-args -p cfg:=ros2/nmpc_sim_unipilot.yaml"
     # command: bash -c "source install/setup.bash && ros2 run sdf_nmpc_ros build_solver.py --ros-args -p cfg:=ros2/nmpc_sim_helicopter.yaml"
     # command: bash -c "source install/setup.bash && ros2 run sdf_nmpc_ros build_solver.py --ros-args -p cfg:=ros2/nmpc_magpie.yaml"
     user: developer

@@ -1,0 +1,5 @@
+repositories:
+  src/agentic_uas:
+    type: git
+    url: git@github.com:ntnu-arl/agentic_uas.git
+    version: master

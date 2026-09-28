@@ -80,14 +80,21 @@ services:
     <<: [*ros2-launch-template]
     image: unified_autonomy:ros2_ros1_bridge
     # command: ros2 run ros1_bridge dynamic_bridge #TODO: set this as a static bridge which is actually a param bridge file -check new magpie for this/
-    command: bash -c "ros2 run ros1_bridge parameter_bridge"
+    command: bash /start_agentic_bridge.sh
     # command: bash -c "ros2 run ros1_bridge parameter_bridge --bridge-tf-frames "map" "rmf" "rmf/base_link/lidar""
     volumes:
       - ./workspaces/ws_ros1_bridge:/workspace
+      - ./workspaces/ws_agentic_uas/src/agentic_uas/scripts/start_agentic_bridge.sh:/start_agentic_bridge.sh:ro
+      - ./workspaces/ws_agentic_uas/src/agentic_uas/scripts/wait_for_ros1_services.py:/wait_for_ros1_services.py:ro
     environment:
       - ROS_DOMAIN_ID=${DOMAIN_ID}
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
     depends_on:
       ros1_launch_roscore:
+        condition: service_healthy
+      ros1_launch_bridge_params:
+        condition: service_completed_successfully
+      ros2_launch_uav_sim:
         condition: service_healthy
 
   # ==================== CODE ====================
@@ -103,12 +110,34 @@ services:
 
   # ==================== PLANNING ====================
 
+  ros2_launch_agentic_uas:
+    <<: *ros2-launch-template
+    image: unified_autonomy:ros2_agentic_uas
+    command: bash -c "source /opt/ros/humble/setup.bash && source /workspace/install/setup.bash && ros2 launch agentic_uas unipilot.launch.py log_level:=${AGENTIC_UAS_LOG_LEVEL:-info}"
+    environment:
+      - ROS_DOMAIN_ID=${DOMAIN_ID}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+    volumes:
+      - ./workspaces/ws_agentic_uas:/workspace
+    depends_on:
+      ros2_launch_ros1_bridge:
+        condition: service_started
+      ros2_launch_uav_sim:
+        condition: service_healthy
+
   # Planner
   # --- GBPlanner ---
   ros1_launch_gbplanner:
     <<: [*ros1-launch-template]
     image: unified_autonomy:ros1_gbplanner
-    command: roslaunch robot_bringup gbplanner_sim.launch robot_name:=rmf_unipilot config_name:=uav_nmpc_unipilot_sim
+    command: >-
+      bash -c 'source /opt/ros/noetic/setup.bash; source /workspace/devel/setup.bash;
+      until timeout 5 rostopic echo -n 2 /clock >/dev/null 2>&1 &&
+            timeout 5 rostopic echo -n 1 /rmf_unipilot/odom/header >/dev/null 2>&1 &&
+            timeout 5 rostopic echo -n 1 /rmf_unipilot/lidar/points_downsampled/header >/dev/null 2>&1;
+      do echo "Waiting for clock, odometry, and LiDAR before starting GBPlanner"; sleep 2; done;
+      exec roslaunch robot_bringup gbplanner_sim.launch robot_name:=rmf_unipilot config_name:=uav_nmpc_unipilot_sim'
     privileged: true
     volumes:
       - *x11-volume
@@ -133,6 +162,17 @@ services:
     runtime: nvidia
     # command: ros2 launch robot_bringup uav_sim.launch.xml
     command: ros2 launch robot_bringup uav_sim_unipilot.launch.xml
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          bash -lc 'source /opt/ros/humble/setup.bash && source /workspace/install/setup.bash &&
+          timeout 8 ros2 topic echo --no-daemon --once /clock rosgraph_msgs/msg/Clock >/dev/null 2>&1 &&
+          timeout 8 ros2 topic echo --no-daemon --once /rmf_unipilot/lidar/points_downsampled sensor_msgs/msg/PointCloud2 --field header >/dev/null 2>&1'
+      interval: 5s
+      timeout: 20s
+      retries: 24
+      start_period: 10s
     privileged: true
     volumes:
       - *x11-volume
@@ -170,7 +210,8 @@ services:
       - ACADOS_SOURCE_DIR=/home/developer/acados
       - LD_LIBRARY_PATH=/usr/local/lib:/home/developer/acados/lib:${LD_LIBRARY_PATH}
       - ROS_DOMAIN_ID=${DOMAIN_ID}
-    command: bash -c "source /opt/ros/humble/setup.bash && source install/setup.bash && ros2 launch robot_bringup nmpc_full.launch.py input_image:=/dome_lidar/range_512x128 odometry:=/rmf_unipilot/odom cfg:=nmpc_sim_unipilot.yaml"
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+    command: bash -c "source /opt/ros/humble/setup.bash && source install/setup.bash && ros2 launch robot_bringup nmpc_full.launch.py input_image:=/dome_lidar/range_512x128 odometry:=/rmf_unipilot/odom output_topic:=/rmf_unipilot/cmd/acc cfg:=nmpc_sim_unipilot.yaml"
     volumes:
       - ./workspaces/ws_nmpc:/workspace
       - *robot-bringup-volume
@@ -202,6 +243,7 @@ services:
   # # ==================== CBF ====================
   ros2_launch_cbf_pc_select:
     <<: *ros2-launch-template
+    profiles: ["cbf"]
     image: unified_autonomy:ros2_cbf
     runtime: nvidia
     environment:
@@ -221,6 +263,7 @@ services:
 
   ros2_launch_composite_cbf:
     <<: *ros2-launch-template
+    profiles: ["cbf"]
     image: unified_autonomy:ros2_cbf
     runtime: nvidia
     environment:

@@ -3,7 +3,7 @@
 # Extends unified_autonomy:ros2_sim (Gazebo Harmonic + gz-transport/msgs dev
 # headers already present) with the helicopter-SITL-specific additions:
 #
-#   1. ros-humble-mavros  (MAVROS node binary — ros2_base only has mavros-msgs)
+#   1. MAVROS node and plugins (ros2_base only has mavros-msgs)
 #   2. GeographicLib datasets  (MAVROS runtime datum files)
 #   3. ArduPilot SITL build  (arducopter-heli binary + sim_vehicle.py;
 #      no apt binary exists — must compile from source)
@@ -31,11 +31,23 @@ ENV PATH="${ARDUPILOT_DIR}/Tools/autotest:${PATH}"
 USER root
 
 # ── 1. MAVROS node binary ─────────────────────────────────────────────────────
-# ros2_base (and thus ros2_sim) has ros-humble-mavros-msgs but NOT the node.
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        ros-humble-mavros \
-        ros-humble-mavros-extras \
-    && rm -rf /var/lib/apt/lists/*
+# The live Humble/Jammy apt index currently publishes mavros-msgs 2.15.1 but
+# omits mavros, mavros-extras, and libmavconn. Install the matching 2.14.0
+# packages from the last complete ROS snapshot until that release is repaired.
+# Use the snapshot's own signing key; the live ROS archive uses a different key.
+RUN gpg --batch --keyserver hkps://keyserver.ubuntu.com \
+        --recv-keys 4B63CF8FDE49746E98FA01DDAD19BAB3CBF125EA && \
+    gpg --batch --export 4B63CF8FDE49746E98FA01DDAD19BAB3CBF125EA \
+        > /usr/share/keyrings/ros-snapshot.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/ros-snapshot.gpg] http://snapshots.ros.org/humble/2026-08-07/ubuntu jammy main" \
+        > /etc/apt/sources.list.d/ros2-mavros-snapshot.list && \
+    apt-get update && apt-get install -y --no-install-recommends --allow-downgrades \
+        ros-humble-mavros=2.14.0-1jammy.20260804.200257 \
+        ros-humble-mavros-extras=2.14.0-1jammy.20260804.203703 \
+        ros-humble-libmavconn=2.14.0-1jammy.20260609.121524 \
+        ros-humble-mavros-msgs=2.14.0-1jammy.20260718.015830 && \
+    rm /etc/apt/sources.list.d/ros2-mavros-snapshot.list && \
+    rm -rf /var/lib/apt/lists/*
 
 # ── 2. GeographicLib datasets ─────────────────────────────────────────────────
 RUN /opt/ros/humble/lib/mavros/install_geographiclib_datasets.sh

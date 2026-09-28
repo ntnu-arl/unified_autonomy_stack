@@ -18,13 +18,12 @@ help: ## Show this help message
 .PHONY: images
 
 images: ## Build all Docker images
-	@docker buildx bake --allow=network.host
+	@docker buildx bake --allow=network.host --allow=ssh
 
 # ==================== CODE BUILDING ====================
 .PHONY: build build-% build-sequential
 
 # Derive list of the "build_" services from docker-compose services
-DOCKER_COMPOSE_FILE := docker-compose.yml
 DOCKER_COMPOSE_BUILD_FILE := docker-compose.build.yml
 BUILD_SERVICES_STRIPPED := $(shell docker compose -f $(DOCKER_COMPOSE_BUILD_FILE) --profile build config --services 2>/dev/null | awk -F'build_' '/^build_/{print $$2}')
 
@@ -45,7 +44,7 @@ build-list: ## List all available build services
 
 
 # ==================== SERVICE MANAGEMENT ====================
-.PHONY: launch stop restart
+.PHONY: launch stop restart attach-%
 
 LAUNCH_SERVICES_ROS1 := $(shell docker compose -f $(DOCKER_COMPOSE_FILE) --profile launch config --services 2>/dev/null | grep '^ros1_launch_' | sed 's/^ros1_launch_//')
 LAUNCH_SERVICES_ROS2 := $(shell docker compose -f $(DOCKER_COMPOSE_FILE) --profile launch config --services 2>/dev/null | grep '^ros2_launch_' | sed 's/^ros2_launch_//')
@@ -74,7 +73,13 @@ status-all: ## All Services Status (all profiles)
 logs: ## show logs from all services
 	@docker compose --profile launch logs -f
 
-# TODO: Pattern rule for opening shell in specific services
+attach-%: ## Open a shell in a running launch service (e.g. attach-agentic_uas)
+	@services="$$(docker compose -f $(DOCKER_COMPOSE_FILE) --profile launch config --services)" || exit 1; \
+	if printf '%s\n' "$$services" | grep -Fxq '$*'; then service='$*'; \
+	elif printf '%s\n' "$$services" | grep -Fxq 'ros2_launch_$*'; then service='ros2_launch_$*'; \
+	elif printf '%s\n' "$$services" | grep -Fxq 'ros1_launch_$*'; then service='ros1_launch_$*'; \
+	else echo "Unknown launch service: $*" >&2; exit 1; fi; \
+	docker compose -f $(DOCKER_COMPOSE_FILE) --profile launch exec "$$service" bash
 
 # ==================== CLEANUP ====================
 .PHONY: clean clean-all

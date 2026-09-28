@@ -3,3 +3,5 @@ workspaces/
 docker-compose.build_images.yml
 data/
 logs/
+unified_autonomy_stack.code-workspace
+AGENTS.md

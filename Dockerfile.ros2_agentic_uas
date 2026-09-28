@@ -1,0 +1,7 @@
+# syntax=docker/dockerfile:1.4
+FROM unified_autonomy:ros2_base
+
+RUN mkdir -p /root/.ssh && ssh-keyscan github.com >> /root/.ssh/known_hosts
+RUN --mount=type=ssh,required=true python3 -m pip install --no-cache-dir \
+    'spark_config @ git+ssh://git@github.com/ntnu-arl/Spark-Config.git' \
+    'openai==1.97.0' 'Pillow>=9,<12'
