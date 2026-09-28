@@ -44,7 +44,7 @@ build-list: ## List all available build services
 
 
 # ==================== SERVICE MANAGEMENT ====================
-.PHONY: launch stop restart attach-%
+.PHONY: launch stop restart attach-% attach-agentic_uas
 
 LAUNCH_SERVICES_ROS1 := $(shell docker compose -f $(DOCKER_COMPOSE_FILE) --profile launch config --services 2>/dev/null | grep '^ros1_launch_' | sed 's/^ros1_launch_//')
 LAUNCH_SERVICES_ROS2 := $(shell docker compose -f $(DOCKER_COMPOSE_FILE) --profile launch config --services 2>/dev/null | grep '^ros2_launch_' | sed 's/^ros2_launch_//')
@@ -80,6 +80,13 @@ attach-%: ## Open a shell in a running launch service (e.g. attach-agentic_uas)
 	elif printf '%s\n' "$$services" | grep -Fxq 'ros1_launch_$*'; then service='ros1_launch_$*'; \
 	else echo "Unknown launch service: $*" >&2; exit 1; fi; \
 	docker compose -f $(DOCKER_COMPOSE_FILE) --profile launch exec "$$service" bash
+
+attach-agentic_uas: ## Attach to the running agentic UAS container with ROS sourced
+	@containers="$$(docker ps --filter 'label=com.docker.compose.service=ros2_launch_agentic_uas' --format '{{.ID}}')" || exit 1; \
+	set -- $$containers; \
+	if [ "$$#" -eq 0 ]; then echo 'No running agentic UAS container found' >&2; exit 1; fi; \
+	if [ "$$#" -ne 1 ]; then echo 'Multiple agentic UAS containers are running; stop one before attaching' >&2; exit 1; fi; \
+	docker exec -it -w /workspace "$$1" bash -c 'source /opt/ros/humble/setup.bash && source /workspace/install/setup.bash && exec bash -i'
 
 # ==================== CLEANUP ====================
 .PHONY: clean clean-all
