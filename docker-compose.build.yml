@@ -169,6 +169,7 @@ services:
     <<: *colcon-build-template
     image: unified_autonomy:ros2_agentic_uas
     volumes:
+      - *robot-bringup-volume
       - ./workspaces/ws_agentic_uas:/workspace
 
   build_vlm:

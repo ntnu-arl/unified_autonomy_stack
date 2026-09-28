@@ -113,13 +113,19 @@ services:
   ros2_launch_agentic_uas:
     <<: *ros2-launch-template
     image: unified_autonomy:ros2_agentic_uas
-    command: bash -c "source /opt/ros/humble/setup.bash && source /workspace/install/setup.bash && ros2 launch agentic_uas unipilot.launch.py log_level:=${AGENTIC_UAS_LOG_LEVEL:-info}"
+    runtime: nvidia
+    command: bash -c "source /opt/ros/humble/setup.bash && source /workspace/install/setup.bash && ros2 launch robot_bringup agentic_uas_unipilot.launch.py log_level:=${AGENTIC_UAS_LOG_LEVEL:-info}"
     environment:
       - ROS_DOMAIN_ID=${DOMAIN_ID}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - HF_HOME=/root/.cache/huggingface
     volumes:
+      - *robot-bringup-volume
       - ./workspaces/ws_agentic_uas:/workspace
+      - agentic_hf_cache:/root/.cache/huggingface
     depends_on:
       ros2_launch_ros1_bridge:
         condition: service_started
@@ -280,3 +286,6 @@ services:
       - /dev/dri:/dev/dri
     devices:
       - /dev/dri:/dev/dri
+
+volumes:
+  agentic_hf_cache:
