@@ -14,6 +14,32 @@ The perception layer provides robust state estimation and mapping through [MIMOS
 - [Nissov, M., Khattak, S., Edlund, J.A., Padgett, C., Alexis, K., and Spieler, P. "ROAMER: Robust Offroad Autonomy using Multimodal State Estimation with Radar Velocity Integration." 2024 IEEE Aerospace Conference, pp. 1-10, 2024.](https://ieeexplore.ieee.org/document/10521170)
 - [Nissov, M., Khedekar, N., and Alexis, K. "Degradation Resilient LiDAR-Radar-Inertial Odometry." 2024 IEEE International Conference on Robotics and Automation (ICRA), pp. 8587-8594, 2024.](https://ieeexplore.ieee.org/document/10611444)
 
+## GTSAM build compatibility
+
+The SLAM dependencies use `dev/agentic_uas` branches. The GTSAM branch starts
+from `feature/imu_factor_with_gravity` and contains the CMake and GCC 9 fixes;
+it does not roll back to the earlier pinned GTSAM version. The normal import
+manifest selects these branches, while the exact manifest records the tested
+commits. Publish these dependency branches before importing them on another machine.
+
+The Noetic SLAM build uses GTSAM's bundled Eigen 3.4 because Ubuntu 20.04's
+Eigen 3.3.7 cannot compile the newer GTSAM headers. `gtsam_points` consumes
+GTSAM's exported targets, and MIMOSA prioritizes the same Eigen headers.
+MIMOSA uses the renamed gravity-direction factor and converts its optimized
+`Unit3` direction to a gravity vector using the configured magnitude for
+propagation and LiDAR deskewing. The estimator still optimizes gravity direction.
+
+Build the affected workspace with:
+
+```bash
+docker compose -f docker-compose.build.yml --profile build run --rm build_mimosa
+```
+
+The build service limits compilation to four jobs to bound memory use. Validation
+includes the gravity-aware IMU factors, incremental fixed-lag smoother, shared-factor
+constructor regression, and a synthetic LiDAR/IMU replay using the Hornbill profile.
+Real sensor data and other robot profiles require separate runtime validation.
+
 ## System Overview
 
 ```mermaid

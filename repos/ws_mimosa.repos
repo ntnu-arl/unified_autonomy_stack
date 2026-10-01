@@ -6,12 +6,12 @@ repositories:
   src/gtsam:
     type: git
     url: git@github.com:ntnu-arl/gtsam.git
-    version: feature/imu_factor_with_gravity
+    version: dev/agentic_uas
   src/gtsam_points:
     type: git
     url: git@github.com:ntnu-arl/gtsam_points.git
-    version: minimal_updated
+    version: dev/agentic_uas
   src/mimosa:
     type: git
     url: git@github.com:ntnu-arl/mimosa.git
-    version: main
+    version: dev/agentic_uas

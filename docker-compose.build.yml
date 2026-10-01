@@ -151,7 +151,8 @@ services:
     <<: [*system-template]
     image: unified_autonomy:ros1_base
     profiles: ["build"]
-    command: bash -c "catkin config -DCMAKE_BUILD_TYPE=Release -DGTSAM_POSE3_EXPMAP=ON -DGTSAM_ROT3_EXPMAP=ON -DGTSAM_USE_QUATERNIONS=ON -DGTSAM_USE_SYSTEM_EIGEN=ON -DGTSAM_BUILD_WITH_MARCH_NATIVE=OFF -DGTSAM_BUILD_WITH_WERROR=OFF -DGTSAM_BUILD_UNSTABLE=ON -DGTSAM_BUILD_EXAMPLES_ALWAYS=OFF -DGTSAM_WITH_TBB=OFF && catkin build"
+    # GTSAM 4.3 needs Eigen 3.4; use its bundled headers and limit compiler memory use.
+    command: bash -c "catkin config -DCMAKE_BUILD_TYPE=Release -DGTSAM_POSE3_EXPMAP=ON -DGTSAM_ROT3_EXPMAP=ON -DGTSAM_USE_QUATERNIONS=ON -DGTSAM_USE_SYSTEM_EIGEN=OFF -DGTSAM_BUILD_WITH_MARCH_NATIVE=OFF -DGTSAM_BUILD_WITH_WERROR=OFF -DGTSAM_BUILD_UNSTABLE=ON -DGTSAM_BUILD_EXAMPLES_ALWAYS=OFF -DGTSAM_WITH_TBB=OFF && catkin build -j4 -p2"
     volumes:
       - *robot-bringup-volume
       - ./workspaces/ws_mimosa:/workspace

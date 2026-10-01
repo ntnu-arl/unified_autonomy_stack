@@ -6,12 +6,12 @@ repositories:
   src/gtsam:
     type: git
     url: git@github.com:ntnu-arl/gtsam.git
-    version: c952ef961bc1743c21fb187a27dbc219e29c9440
+    version: 1cb69c91ed89ffc34b6a1da5809a46b2a08c0e38
   src/gtsam_points:
     type: git
     url: git@github.com:ntnu-arl/gtsam_points.git
-    version: 7164869d32e7a102ce55875a0e17ccc7c0aa0b5f
+    version: 74cc96927dbad983b0a56ed3afaf8d98d4773fab
   src/mimosa:
     type: git
     url: git@github.com:ntnu-arl/mimosa.git
-    version: 9df689e01a36f3d138158ed49a8d51c255551d4d
+    version: 5ddf92528792b797e8cfafc1cce0d309ad7446bc
