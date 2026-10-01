@@ -166,8 +166,24 @@ services:
     <<: [*ros2-launch-template]
     image: unified_autonomy:ros2_sim
     runtime: nvidia
-    # command: ros2 launch robot_bringup uav_sim.launch.xml
-    command: ros2 launch robot_bringup uav_sim_unipilot.launch.xml
+    # Both presets share the robot, controller, ROS topics, and bridge configuration.
+    command:
+      - bash
+      - -c
+      - |
+        case "${SIM_WORLD_PROFILE:-office}" in
+          subt)
+            exec ros2 launch robot_bringup uav_sim_unipilot.launch.xml
+            ;;
+          office)
+            exec ros2 launch robot_bringup uav_sim_unipilot.launch.xml \
+              world_package:=gz_sim_worlds world:=rmf_office world_name:=cosmos x:=10 y:=-3
+            ;;
+          *)
+            echo "Unknown SIM_WORLD_PROFILE; use subt or office" >&2
+            exit 1
+            ;;
+        esac
     healthcheck:
       test:
         - CMD-SHELL

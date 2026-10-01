@@ -4,6 +4,8 @@
 .DEFAULT_GOAL := help
 
 DOCKER_COMPOSE_FILE ?= docker-compose.yml
+# World preset for the unipilot simulation Compose file.
+export SIM_WORLD_PROFILE ?= office
 
 help: ## Show this help message
 	@echo "Available make targets:"
@@ -56,7 +58,7 @@ launch: ## Launch all services
 #TODO: launch for specific services
 
 stop: ## Stop all launched services
-	@docker compose --profile launch down
+	@docker compose -f $(DOCKER_COMPOSE_FILE) --profile launch down
 
 restart: ## Restart all launched services
 	@docker compose --profile launch restart

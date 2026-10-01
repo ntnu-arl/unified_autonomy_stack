@@ -6,6 +6,36 @@ The Simulation environment utilizes **Gazebo** and **Aerial Gym Simulator**. Gaz
 
 We provide ROS 2 simulators for multi-rotor and differntial drive wheeled robot integrated with the Unified Autonomy Stack. Both simulators are located in the `unified_autonomy_stack/workspaces/ws_sim` workspace.
 
+### Unipilot world presets
+
+One Compose file supports both environments, with the office as the default:
+
+```bash
+make launch DOCKER_COMPOSE_FILE=docker-compose.uav_nmpc_unipilot_sim.yml SIM_WORLD_PROFILE=office
+make launch DOCKER_COMPOSE_FILE=docker-compose.uav_nmpc_unipilot_sim.yml SIM_WORLD_PROFILE=subt
+```
+
+Stop the current simulation before switching presets:
+
+```bash
+make stop DOCKER_COMPOSE_FILE=docker-compose.uav_nmpc_unipilot_sim.yml
+```
+
+`office` loads
+`gz_sim_worlds/rmf_office.sdf` (Gazebo world `cosmos`) at `(10, -3, 0.5)`;
+`subt` loads `subt_cave_sim/darpa_cave_01.sdf` (world `map`) at `(40, 5, 0.5)`.
+Both expose the same ROS sensor topics, TF frames, controller, and ROS 1 bridge.
+The world filename and internal Gazebo world name are separate launch arguments.
+For worlds named differently from `map`, an identity transform connects the
+Gazebo pose tree to the stack's `map` frame.
+Both worlds use a 1 ms physics step for the UAV motor and acceleration controllers.
+The launch repeats the complete static TF set once per simulated second because
+the bundled legacy bridge uses a volatile ROS 2 subscriber. This lets ROS 1
+consumers obtain camera extrinsics and the map-to-odometry transform even when
+the bridge or RViz starts late. The bridge's ROS 2 static TF publisher uses
+transient-local durability.
+After updating world resources or bringup scripts, run `make build-sim` once.
+
 ### Multirotor Simulator
 
 The [multirotor simulator](https://github.com/ntnu-arl/rmf_gz/tree/dev/unified_autonomy_stack) consists of the ROS 2 package `unified_autonomy_stack/workspaces/ws_sim/src/rmf_gz`.
