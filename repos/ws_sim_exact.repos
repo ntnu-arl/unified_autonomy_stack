@@ -2,7 +2,7 @@ repositories:
   src/rmf_gz:
     type: git
     url: git@github.com:ntnu-arl/rmf_gz.git
-    version: 1bc88f71f4e36c9bd2571811fad43ac76fd69ea7
+    version: e8dc9689b60aa4c76e606ecd3ac545d50eab8a22
   src/subt_cave_sim:
     type: git
     url: git@github.com:ntnu-arl/subt_cave_sim.git
@@ -15,3 +15,7 @@ repositories:
     type: git
     url: git@github.com:ntnu-arl/helicopter_bridge.git
     version: 02c55b4214a65687e720e1a3554559f074017bbc
+  src/gz_sim_worlds:
+    type: git
+    url: git@github.com:ntnu-arl/gz_sim_worlds.git
+    version: f36121e6743e7de411c125ffae817a318ba87b6f  

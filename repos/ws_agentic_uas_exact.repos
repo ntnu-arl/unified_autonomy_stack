@@ -2,4 +2,4 @@ repositories:
   src/agentic_uas:
     type: git
     url: git@github.com:ntnu-arl/agentic_uas.git
-    version: main
+    version: 08956c4721cd7dddeacd5462df2f01aa1c19a532

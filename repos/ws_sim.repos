@@ -2,7 +2,7 @@ repositories:
   src/rmf_gz:
     type: git
     url: git@github.com:ntnu-arl/rmf_gz.git
-    version: dev/unified_autonomy_stack
+    version: dev/agentic_uas
   src/subt_cave_sim:
     type: git
     url: git@github.com:ntnu-arl/subt_cave_sim.git
@@ -15,3 +15,7 @@ repositories:
     type: git
     url: git@github.com:ntnu-arl/helicopter_bridge.git
     version: main
+  src/gz_sim_worlds:
+    type: git
+    url: git@github.com:ntnu-arl/gz_sim_worlds.git
+    version: main    
