@@ -1,0 +1,4 @@
+# Existing simulation, planner and agent plus Jazzy scene graph and Humble receiver.
+include:
+  - docker-compose.uav_nmpc_unipilot_sim.yml
+  - docker-compose.scene_graph.yml

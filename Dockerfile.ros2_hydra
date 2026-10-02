@@ -1,0 +1,74 @@
+FROM unified_autonomy:ros2_jazzy_base
+
+ARG DEBIAN_FRONTEND=noninteractive
+ARG USER_UID=1000
+ARG USER_GID=1000
+
+SHELL ["/bin/bash", "-c"]
+
+# Install Hydra's non-CUDA build, visualization, and networking dependencies.
+USER root
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+    freeglut3-dev \
+    g++-11 \
+    gcc-11 \
+    git \
+    libcli11-dev \
+    libdxflib-dev \
+    libeigen3-dev \
+    libgl1-mesa-dri \
+    libglm-dev \
+    libgoogle-glog-dev \
+    libglu1-mesa-dev \
+    libjpeg-dev \
+    libnanoflann-dev \
+    libunwind-dev \
+    libzmq3-dev \
+    nlohmann-json3-dev \
+    python3-pip \
+    python3-venv \
+    python3-colcon-clean \
+    ros-jazzy-depth-image-proc \
+    ros-jazzy-diagnostic-updater \
+    ros-jazzy-rmw-zenoh-cpp \
+    ros-jazzy-rqt-tf-tree \
+    xorg-dev \
+  && rm -rf /var/lib/apt/lists/*
+
+# Source code is mounted by Compose from the workspace root. The temporary copy
+# is only used to resolve package.xml dependencies at build time.
+COPY --from=scene_graph_source . /tmp/deps/src/
+
+# Resolve ROS package dependencies from the scene graph workspace.
+RUN if [[ ! -f /etc/ros/rosdep/sources.list.d/20-default.list ]]; then rosdep init; fi \
+  && rosdep update \
+  && apt-get update \
+  && apt-get install -y --no-install-recommends \
+    libzmq5-dev \
+    ros-jazzy-gtsam \
+    ros-jazzy-rmw-cyclonedds-cpp \
+  && rosdep install --from-paths /tmp/deps/src --ignore-src -r -y --rosdistro=${ROS_DISTRO} \
+  && rm -rf /var/lib/apt/lists/*
+
+# Create the open-set semantics Python environment without installing vlm_ros requirements.
+RUN python3 -m venv --system-site-packages /developer/semantics_env \
+  && /developer/semantics_env/bin/pip install --upgrade "pip<25" \
+  && /developer/semantics_env/bin/pip install "setuptools<80" wheel \
+  && /developer/semantics_env/bin/pip install "pybind11<2.12" \
+  && /developer/semantics_env/bin/pip install 'torch==2.6.0' 'torchvision==0.21.0' \
+  && /developer/semantics_env/bin/pip install --no-build-isolation \
+    git+https://github.com/openai/CLIP.git \
+  && /developer/semantics_env/bin/pip install -r /tmp/deps/src/semantic_inference/semantic_inference_python/requirements.txt
+
+# Add ROS workspace helpers to the developer shell.
+RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /home/developer/.bashrc \
+  && echo "alias qwe='source install/local_setup.bash'" >> /home/developer/.bashrc \
+  && echo "alias cb='colcon build --symlink-install --continue-on-error'" >> /home/developer/.bashrc \
+  && echo "export PS1='\\[\\e[1;32m\\]\\u@\\h \\[\\e[1;34m\\]\\w\\[\\e[0m\\]$ '" >> /home/developer/.bashrc \
+  && mkdir -p /home/developer/.gz \
+  && chown -R "${USER_UID}:${USER_GID}" /home/developer /workspace
+
+RUN /developer/semantics_env/bin/pip install pyzmq
+
+USER ${USER_UID}:${USER_GID}
