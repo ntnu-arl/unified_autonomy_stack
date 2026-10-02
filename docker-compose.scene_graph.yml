@@ -1,0 +1,62 @@
+# Add alongside a running unipilot simulation, or use the combined simulation file.
+services:
+  ros2_launch_scene_graph_sensor_sender:
+    image: unified_autonomy:ros2_agentic_uas
+    profiles: [launch]
+    network_mode: host
+    ipc: host
+    working_dir: /workspace
+    init: true
+    environment:
+      ROS_DOMAIN_ID: ${DOMAIN_ID:-205}
+      RMW_IMPLEMENTATION: rmw_fastrtps_cpp
+      FASTDDS_BUILTIN_TRANSPORTS: UDPv4
+    volumes:
+      - ./workspaces/ws_agentic_uas:/workspace
+      - ./workspaces/robot_bringup:/workspace/src/robot_bringup
+    command: ros2 launch robot_bringup scene_graph_sensor_bridge.launch.xml
+
+  ros2_launch_scene_graph:
+    image: unified_autonomy:ros2_hydra
+    profiles: [launch]
+    network_mode: host
+    ipc: host
+    runtime: nvidia
+    working_dir: /workspace
+    init: true
+    environment:
+      ROS_DOMAIN_ID: ${SCENE_GRAPH_DOMAIN_ID:-206}
+      RMW_IMPLEMENTATION: rmw_fastrtps_cpp
+      FASTDDS_BUILTIN_TRANSPORTS: UDPv4
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+      HF_HOME: /workspace/hf_cache
+      CLIP_CACHE_DIR: /workspace/.clip
+      SEMANTIC_INFERENCE_MODEL_DIR: /workspace/models
+    volumes:
+      - ./workspaces/ws_scene_graph:/workspace
+      - ./workspaces/robot_bringup:/workspace/src/robot_bringup
+    command: ros2 launch robot_bringup scene_graph.launch.yaml
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  ros2_launch_scene_graph_visualization_receiver:
+    image: unified_autonomy:ros2_agentic_uas
+    profiles: [launch]
+    network_mode: host
+    ipc: host
+    working_dir: /workspace
+    init: true
+    environment:
+      ROS_DOMAIN_ID: ${DOMAIN_ID:-205}
+      RMW_IMPLEMENTATION: rmw_fastrtps_cpp
+      FASTDDS_BUILTIN_TRANSPORTS: UDPv4
+    volumes:
+      - ./workspaces/ws_agentic_uas:/workspace
+      - ./workspaces/robot_bringup:/workspace/src/robot_bringup
+    command: ros2 launch robot_bringup scene_graph_visualization_bridge.launch.xml

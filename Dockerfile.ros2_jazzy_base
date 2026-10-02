@@ -1,0 +1,43 @@
+ARG ROS_IMAGE=ros:jazzy-perception-noble
+FROM ${ROS_IMAGE}
+
+ARG DEBIAN_FRONTEND=noninteractive
+ARG USER_UID=1000
+ARG USER_GID=1000
+
+SHELL ["/bin/bash", "-c"]
+
+# Every specialized container sees its own host workspace at /workspace.
+# Application-specific environments belong in their derived images.
+ENV WORKSPACE=/workspace
+ENV PYTHONUNBUFFERED=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    python3-colcon-common-extensions \
+    python3-rosdep \
+    ros-jazzy-desktop \
+    ros-jazzy-rmw-fastrtps-cpp \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN if ! getent group ${USER_GID} >/dev/null; then \
+      groupadd --gid ${USER_GID} developer; \
+    fi \
+  && if ! getent passwd ${USER_UID} >/dev/null; then \
+      useradd --uid ${USER_UID} --gid ${USER_GID} \
+        --home-dir /home/developer --create-home \
+        --shell /bin/bash developer; \
+    fi \
+  && mkdir -p ${WORKSPACE} /home/developer/.ros \
+  && chown -R ${USER_UID}:${USER_GID} \
+    ${WORKSPACE} /home/developer
+
+COPY images/ros2_entrypoint.sh /ros2_entrypoint.sh
+RUN chmod 0755 /ros2_entrypoint.sh
+
+ENV HOME=/home/developer
+USER ${USER_UID}:${USER_GID}
+WORKDIR ${WORKSPACE}
+
+ENTRYPOINT ["/ros2_entrypoint.sh"]
+CMD ["bash"]

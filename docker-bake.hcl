@@ -3,7 +3,7 @@ variable "REGISTRY" {
 }
 
 group "default" {
-  targets = ["ros1_base", "ros2_base", "ros1_gbplanner", "ros2_sim", "cuda_pytorch", "ros2_cuda", "ros2_nmpc", "ros2_cbf", "ros1-bridge-builder", "ros2_ros1_bridge", "ros2_rl", "ros2_vlm", "ros2_heli_sim", "ros2_agentic_uas"]
+  targets = ["ros1_base", "ros2_base", "ros1_gbplanner", "ros2_sim", "cuda_pytorch", "ros2_cuda", "ros2_nmpc", "ros2_cbf", "ros1-bridge-builder", "ros2_ros1_bridge", "ros2_rl", "ros2_vlm", "ros2_heli_sim", "ros2_agentic_uas", "ros2_jazzy_base", "ros2_hydra"]
 }
 
 target "default" {
@@ -129,6 +129,7 @@ target "ros2_agentic_uas" {
   ssh        = ["default"]
   contexts   = {
     "unified_autonomy:ros2_base" = "target:ros2_base"
+    "spark_dsg_source" = "./workspaces/ws_scene_graph/src/spark_dsg"
   }
 }
 
@@ -140,4 +141,23 @@ target "ros2_heli_sim" {
     "unified_autonomy:ros2_sim" = "target:ros2_sim"
   }
   network = "host"
+}
+
+// Jazzy scene graph remains isolated from the Humble runtime.
+target "ros2_jazzy_base" {
+  context = "."
+  dockerfile = "Dockerfile.ros2_jazzy_base"
+  tags = ["${REGISTRY}:ros2_jazzy_base"]
+  network = "host"
+}
+
+target "ros2_hydra" {
+  context = "."
+  dockerfile = "Dockerfile.ros2_hydra"
+  tags = ["${REGISTRY}:ros2_hydra"]
+  network = "host"
+  contexts = {
+    "unified_autonomy:ros2_jazzy_base" = "target:ros2_jazzy_base"
+    "scene_graph_source" = "./workspaces/ws_scene_graph/src"
+  }
 }

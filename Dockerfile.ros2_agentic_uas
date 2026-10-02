@@ -8,3 +8,19 @@ RUN mkdir -p /root/.ssh && ssh-keyscan github.com >> /root/.ssh/known_hosts
 RUN --mount=type=ssh,required=true python3 -m pip install --no-cache-dir \
     'spark_config @ git+ssh://git@github.com/ntnu-arl/Spark-Config.git' \
     'openai==1.97.0' 'Pillow>=9,<12' 'open_clip_torch==2.32.0'
+RUN python3 -m pip install --no-cache-dir pyzmq
+
+# Compile the same ROS-independent Spark-DSG format used by Jazzy Hydra for
+# Humble's Python 3.10; Jazzy's Python 3.12 extension is not ABI compatible.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libeigen3-dev libgoogle-glog-dev libopencv-dev nlohmann-json3-dev \
+    && rm -rf /var/lib/apt/lists/*
+COPY --from=spark_dsg_source . /tmp/spark_dsg/
+RUN python3 -m pip install --no-cache-dir --upgrade 'pip>=23,<26' \
+    && python3 -m pip install --no-cache-dir scikit-build-core 'pybind11<3' shapely networkx \
+    && CMAKE_BUILD_PARALLEL_LEVEL=2 python3 -m pip install --no-cache-dir \
+       --no-deps --no-build-isolation /tmp/spark_dsg \
+       -Cwheel.packages=python/spark_dsg \
+       -Ccmake.define.SPARK_DSG_BUILD_ZMQ=OFF \
+       -Ccmake.define.CMAKE_INTERPROCEDURAL_OPTIMIZATION=OFF \
+    && rm -rf /tmp/spark_dsg

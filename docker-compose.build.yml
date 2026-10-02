@@ -173,6 +173,13 @@ services:
       - *robot-bringup-volume
       - ./workspaces/ws_agentic_uas:/workspace
 
+  build_scene_graph:
+    <<: *colcon-build-template
+    image: unified_autonomy:ros2_hydra
+    volumes:
+      - *robot-bringup-volume
+      - ./workspaces/ws_scene_graph:/workspace
+
   build_vlm:
     <<: [*colcon-build-template]
     image: unified_autonomy:ros2_vlm
