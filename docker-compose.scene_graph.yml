@@ -33,8 +33,6 @@ services:
       HF_HOME: /workspace/hf_cache
       CLIP_CACHE_DIR: /workspace/.clip
       SEMANTIC_INFERENCE_MODEL_DIR: /workspace/models
-      # Core Spark-DSG installs bindings outside Python site-packages.
-      PYTHONPATH: /workspace/install/spark_dsg
     volumes:
       - ./workspaces/ws_scene_graph:/workspace
       - ./workspaces/robot_bringup:/workspace/src/robot_bringup
@@ -47,7 +45,7 @@ services:
               count: all
               capabilities: [gpu]
 
-  ros2_launch_scene_graph_receiver:
+  ros2_launch_scene_graph_visualization_receiver:
     image: unified_autonomy:ros2_agentic_uas
     profiles: [launch]
     network_mode: host
@@ -61,4 +59,4 @@ services:
     volumes:
       - ./workspaces/ws_agentic_uas:/workspace
       - ./workspaces/robot_bringup:/workspace/src/robot_bringup
-    command: ros2 launch robot_bringup scene_graph_receiver.launch.xml
+    command: ros2 launch robot_bringup scene_graph_visualization_bridge.launch.xml

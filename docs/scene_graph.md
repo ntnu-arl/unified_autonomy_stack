@@ -13,9 +13,7 @@ flowchart LR
   J --> Y[YOLOE and OpenCLIP]
   J --> D[Hydra]
   Y --> D
-  D --> E[Jazzy graph exporter]
-  E -->|Full JSON snapshots over TCP 8002| R[Humble agentic_uas receiver]
-  R -->|/agentic_uas/scene_graph| A[Task agent placeholder cache]
+  D -->|Native Spark-DSG binary over TCP 8002| A[Humble task agent: direct ZeroMQ receiver]
   D --> V[Jazzy Hydra visualizer]
   V -->|Graph MarkerArray over TCP 8004| M[Humble marker receiver]
   M --> B[ROS 1 bridge]
@@ -81,26 +79,34 @@ frontier and task-keyview modules are disabled in this first integration.
 
 ## Agent interface
 
-The Jazzy exporter decodes `/hydra/backend/dsg` with the matching Spark-DSG bindings.
-At most once per second it exports a complete JSON snapshot. It repeats the latest
-snapshot to recover late or restarted receivers. The schema includes:
+Hydra's existing C++ `ZmqSink` sends complete Spark-DSG binary graphs directly
+from the backend to `tcp://127.0.0.1:8002`. The bringup launch sets the C++ configuration key `enable_zmq_interface=true` and
+`zmq_send_mesh=false`. No custom Hydra C++ changes are needed.
 
-- `schema: agentic_uas.scene_graph`, `version: 1`, an exporter session UUID and sequence.
-- Source timestamp in nanoseconds, world frame and `full_update: true`.
-- Nodes with uint64 IDs represented as strings, symbols, layer/partition and 3D positions.
-- Semantic label IDs/names and oriented bounding boxes for object nodes.
-- Edges with source and target IDs.
+The task node owns `SceneGraphReceiver` in `agentic_uas/scene_graph.py`. It polls a
+ZeroMQ SUB socket every 0.1 seconds without blocking, keeps only the newest queued
+payload, and decodes it into a native `spark_dsg.DynamicSceneGraph`. Each complete
+snapshot replaces `self.scene_graph`, including node deletions and Hydra restarts.
+Semantic attributes, positions, oriented bounding boxes, edges and metadata remain
+available without converting through JSON or a ROS graph topic. Mesh is excluded;
+other native attributes, including available embeddings, are preserved.
 
-Mesh and embedding tensors are omitted from this lightweight boundary. IDs belong
-to a Hydra run; a new exporter session distinguishes restarts. Complete snapshots
-replace the receiver cache, including deletions. Intermediate snapshots may be
-dropped intentionally; the receiver always keeps the newest available snapshot.
+The agent's nested `scene_graph` Spark-Config dataclass configures `enabled`,
+`endpoint` and `poll_interval`. Reception is optional, does not delay startup, and
+continues while the agent is idle. Status reports native node and edge counts;
+`scene_graph_sequence` is a **local count of received updates**, not a Hydra sequence.
+The graph is not yet included in VLM input or used to select navigation targets.
 
-`agentic_uas/scene_graph.py` loads `SceneGraphReceiverConfig` through Spark-Config
-and publishes `/agentic_uas/scene_graph` as a transient-local `std_msgs/String`.
-The task agent caches it in `self.scene_graph` and reports `scene_graph_nodes` and
-`scene_graph_sequence` in `/agentic_uas/status`. It does **not** yet feed this graph
-to the VLM or change navigation decisions.
+The native wire format has no ROS frame/timestamp or session envelope. Coordinates
+follow Hydra's configured `map_frame` (`map` here); node attributes retain their own
+native timestamps. A late or restarted agent gets the graph on the next backend
+update. Unlike the removed JSON exporter, the native sender does not periodically
+replay a cached graph when the backend is completely inactive.
+
+The Humble image compiles Python 3.10 bindings from the exact Spark-DSG source in
+`workspaces/ws_scene_graph/src/spark_dsg`, also used by Jazzy Hydra. This library is
+ROS-independent. Jazzy's Python 3.12 extension cannot be loaded by the Humble agent.
+Rebuild the agent image when the Spark-DSG source/binary format changes.
 
 ## Verification
 
@@ -112,8 +118,9 @@ make attach-agentic_uas
 python3 /tmp/check_scene_graph.py
 ```
 
-The check requires actual semantic objects, unique node IDs, finite 3D positions,
-valid edges/bounding boxes and a matching graph sequence/count in agent status.
+The check subscribes directly to the native binary stream and requires actual
+semantic objects, unique IDs, finite positions, valid edges/bounding boxes, no mesh,
+and matching node/edge counts in agent status.
 The robot must have a usable view of recognizable objects within Hydra's depth range.
 
 Validated in the office world with Humble domain 216 and Jazzy domain 217:
@@ -155,3 +162,11 @@ Jazzy, repeatedly clearing Hydra's TF buffer. Fixing the launch name removed
 639 backward clock jumps observed during a 10-second simulation test: the same
 test then had zero jumps and duplicate clocks, and semantic graph markers reached
 ROS 1. The bridge script is bind-mounted, so this correction only needs a relaunch.
+
+Validated the direct transport in the office world: Humble received 255 native
+nodes, three semantic objects and 251 edges, matching the task agent's cache;
+mesh was absent and ROS 1 still received chair/desk graph markers. All 43 agent
+tests passed, including native snapshot deletion, preservation of semantic
+attributes, rejection of obsolete text payloads, and publisher reconnection.
+Restarting the actual Hydra and task-agent containers recovered a fresh object
+graph through the same native connection.

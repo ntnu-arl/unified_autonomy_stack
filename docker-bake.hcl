@@ -129,6 +129,7 @@ target "ros2_agentic_uas" {
   ssh        = ["default"]
   contexts   = {
     "unified_autonomy:ros2_base" = "target:ros2_base"
+    "spark_dsg_source" = "./workspaces/ws_scene_graph/src/spark_dsg"
   }
 }
 
