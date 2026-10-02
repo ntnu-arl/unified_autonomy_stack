@@ -36,7 +36,8 @@ services:
     volumes:
       - ./workspaces/ws_scene_graph:/workspace
       - ./workspaces/robot_bringup:/workspace/src/robot_bringup
-    command: ros2 launch robot_bringup scene_graph.launch.yaml
+      - ${SCENE_GRAPH_LABELSPACE_DIR:-./workspaces/ws_scene_graph/src/hydra/config/label_spaces}:/scene_graph/label_spaces:ro
+    command: ros2 launch robot_bringup scene_graph.launch.yaml labelspace_dir:=/scene_graph/label_spaces
     deploy:
       resources:
         reservations:

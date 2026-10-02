@@ -126,6 +126,7 @@ services:
       - *robot-bringup-volume
       - ./workspaces/ws_agentic_uas:/workspace
       - agentic_hf_cache:/root/.cache/huggingface
+      - ${SCENE_GRAPH_LABELSPACE_DIR:-./workspaces/ws_scene_graph/src/hydra/config/label_spaces}:/scene_graph/label_spaces:ro
     depends_on:
       ros2_launch_ros1_bridge:
         condition: service_started
