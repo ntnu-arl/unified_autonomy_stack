@@ -1,0 +1,126 @@
+<section id="judgment">
+<style>
+#judgment{clear:both;background:#f4f7fb;border:1px solid #c7d2e0;border-radius:10px;padding:24px;margin:32px 0}
+#judgment label{display:block;font-weight:bold;margin-top:20px}
+#judgment input[type=text],#judgment select,#judgment textarea{box-sizing:border-box;width:100%;font:inherit;padding:10px;border:1px solid #8a98ab;border-radius:5px;background:white}
+#judgment textarea{min-height:150px}#judgment .help{color:#344256;margin:7px 0 12px;line-height:1.5}
+#judgment button{font:inherit;padding:11px 18px;border-radius:5px;border:1px solid #17487c;cursor:pointer;margin:12px 8px 0 0}
+#save-review{background:#17487c;color:white}#judgment .check{font-weight:normal}#review-message{white-space:pre-wrap;font-weight:bold}
+</style>
+<h2>Record your judgment</h2>
+<p id="save-mode">Opening this packet as a file lets you download a review. Open it through the local review server to save directly to the trial.</p>
+<form id="review-form">
+<label for="reviewer">Reviewer name or identifier *</label>
+<p class="help" id="reviewer-help">Enter your name or a stable reviewer alias, such as “Albert” or “Reviewer A”. Use the same identifier across trials. This identifies the person judging the evidence.</p>
+<input id="reviewer" name="reviewer" type="text" required aria-describedby="reviewer-help" autocomplete="name">
+<label for="result">Task result *</label>
+<p class="help" id="result-help"><strong>Success:</strong> the recorded evidence shows that the agent satisfied the full task. For search, it correctly identifies the requested object; for sequential tasks, all stages are satisfied in order. <strong>Failure:</strong> sufficient evidence shows that the full task was not satisfied by the end of the trial. <strong>Unknown:</strong> the recording or task criterion is insufficient to decide. Proximity or geometric visibility alone does not prove success. For exploration, apply the agreed exploration criterion; if none exists, choose Unknown.</p>
+<select id="result" name="result" required aria-describedby="result-help">
+<option value="">Choose a result</option><option value="success">Success — full task satisfied</option><option value="failure">Failure — full task not satisfied</option><option value="unknown">Unknown — insufficient evidence or criterion</option>
+</select>
+<label for="evidence">Evidence and justification *</label>
+<p class="help" id="evidence-help">Cite the exact iteration/image IDs or simulation timestamps, describe what they show, and explain why they support your result. For sequential tasks, cite each stage and its order. For Unknown, describe what is missing. Example: “Iteration 000004/image_000.jpg shows the requested chair; the applied answer identifies it and finishes the task. The earlier images do not show it.” Cite applied answers; a discarded prefetched result alone is insufficient.</p>
+<textarea id="evidence" name="evidence" required aria-describedby="evidence-help" placeholder="Evidence references, observations, and justification..."></textarea>
+<label for="completion-claim">Correctness of the agent’s final completion claim</label>
+<p class="help" id="claim-help"><strong>Correct:</strong> the agent declared the task complete and the evidence supports that declaration. <strong>Incorrect:</strong> it declared completion but the evidence contradicts it (false completion). <strong>Not assessed:</strong> no final declaration exists, or its correctness cannot be judged. A timeout is not a completion declaration. This is separate from whether the task was satisfied.</p>
+<select id="completion-claim" name="completion_claim" aria-describedby="claim-help">
+<option value="unknown">Not assessed / no final completion declaration</option><option value="correct">Correct — declaration supported by evidence</option><option value="incorrect">Incorrect — false completion declaration</option>
+</select>
+<p class="help" id="claim-availability"></p>
+<label class="check"><input id="overwrite" type="checkbox"> Replace the existing saved judgment</label>
+<p class="help">Leave unchecked for a first review. Check only when you intentionally revise a saved judgment. Saving without this checkbox protects an existing review.</p>
+<button id="save-review" type="submit" disabled>Save judgment to trial</button>
+<button id="download-review" type="button">Download review.json</button>
+<p id="review-message" role="status" aria-live="polite"></p>
+</form>
+<script id="review-data" type="application/json">REVIEW_DATA_JSON</script>
+<script>
+(() => {
+  const data = JSON.parse(document.getElementById('review-data').textContent);
+  const form = document.getElementById('review-form');
+  const message = document.getElementById('review-message');
+  const save = document.getElementById('save-review');
+  let token = null;
+  function fill(existing, declared) {
+    const claim = document.getElementById('completion-claim');
+    claim.disabled = !declared;
+    document.getElementById('claim-availability').textContent = declared
+      ? 'A final completion declaration is recorded. Assess it from the evidence above.'
+      : 'No final completion declaration is recorded. This field stays Not assessed.';
+    if (existing && existing.trial_sha256 === data.trial_sha256) {
+      for (const field of ['reviewer', 'result', 'evidence']) {
+        document.getElementById(field).value = existing[field] || '';
+      }
+      claim.value = declared ? (existing.completion_claim || 'unknown') : 'unknown';
+      message.textContent = 'An existing judgment is loaded. Check Replace to save a revision.';
+    } else if (existing) {
+      message.textContent = 'The existing review does not match this trial manifest. Inspect it before replacing it.';
+    }
+  }
+  function values() {
+    if (!form.reportValidity()) return null;
+    const value = {
+      trial_sha256: data.trial_sha256,
+      reviewer: document.getElementById('reviewer').value.trim(),
+      result: document.getElementById('result').value,
+      evidence: document.getElementById('evidence').value.trim(),
+      completion_claim: document.getElementById('completion-claim').disabled ? 'unknown' : document.getElementById('completion-claim').value,
+      overwrite: document.getElementById('overwrite').checked
+    };
+    if (!value.reviewer || !value.evidence) {
+      message.textContent = 'Reviewer and evidence must contain text.'; return null;
+    }
+    if ((value.result === 'success' && value.completion_claim === 'incorrect') ||
+        (value.result === 'failure' && value.completion_claim === 'correct')) {
+      message.textContent = 'Task result and completion-claim judgment contradict each other.'; return null;
+    }
+    return value;
+  }
+  fill(data.existing_review, data.declared_complete);
+  if (location.protocol === 'http:' || location.protocol === 'https:') {
+    fetch('/api/reviews/' + data.code).then(async response => {
+      const state = await response.json();
+      if (!response.ok) throw new Error(state.error || 'Review server unavailable');
+      if (state.trial_sha256 !== data.trial_sha256) throw new Error('Trial changed; reload this page before reviewing.');
+      token = state.token;
+      fill(state.review, state.declared_complete);
+      save.disabled = false;
+      document.getElementById('save-mode').textContent = 'Save judgment writes review.json directly to this trial. The recorded images and model outputs remain available above. Refresh the campaign figures after reviewing.';
+    }).catch(error => { message.textContent = error.message + ' You can still download a review.'; });
+  }
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    const value = values();
+    if (!value || !token) return;
+    save.disabled = true;
+    try {
+      const response = await fetch('/api/reviews/' + data.code, {
+        method: 'POST', headers: {'Content-Type': 'application/json', 'X-Review-Token': token},
+        body: JSON.stringify(value)
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Could not save judgment');
+      message.textContent = 'Judgment saved to trial review.json. Result: ' + value.result + '.';
+      document.getElementById('overwrite').checked = false;
+    } catch (error) { message.textContent = error.message; }
+    finally { save.disabled = false; }
+  });
+  document.getElementById('download-review').addEventListener('click', () => {
+    const value = values();
+    if (!value) return;
+    const review = {
+      schema_version: 1, trial_sha256: value.trial_sha256,
+      semantic_task_success: {success: true, failure: false, unknown: null}[value.result],
+      result: value.result, reviewer: value.reviewer, evidence: value.evidence,
+      completion_claim: value.completion_claim,
+      false_completion: {correct: false, incorrect: true, unknown: null}[value.completion_claim],
+      reviewed_utc: new Date().toISOString()
+    };
+    const url = URL.createObjectURL(new Blob([JSON.stringify(review, null, 2) + '\n'], {type: 'application/json'}));
+    const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'review.json'; anchor.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    message.textContent = 'Review downloaded. Place review.json in the corresponding trial folder to include it in summaries. Downloading alone does not save to the trial.';
+  });
+})();
+</script>
+</section>

@@ -46,7 +46,7 @@ build-list: ## List all available build services
 
 
 # ==================== SERVICE MANAGEMENT ====================
-.PHONY: launch stop restart attach-% attach-agentic_uas
+.PHONY: launch stop stop-benchmark restart attach-% attach-agentic_uas
 
 LAUNCH_SERVICES_ROS1 := $(shell docker compose -f $(DOCKER_COMPOSE_FILE) --profile launch config --services 2>/dev/null | grep '^ros1_launch_' | sed 's/^ros1_launch_//')
 LAUNCH_SERVICES_ROS2 := $(shell docker compose -f $(DOCKER_COMPOSE_FILE) --profile launch config --services 2>/dev/null | grep '^ros2_launch_' | sed 's/^ros2_launch_//')
@@ -59,6 +59,10 @@ launch: ## Launch all services
 
 stop: ## Stop all launched services
 	@docker compose -f $(DOCKER_COMPOSE_FILE) --profile launch down
+	@python3 scripts/run_agentic_benchmark.py --stop-existing
+
+stop-benchmark: ## Clean abandoned benchmark containers; preserve recordings and model caches
+	@python3 scripts/run_agentic_benchmark.py --stop-existing
 
 restart: ## Restart all launched services
 	@docker compose --profile launch restart

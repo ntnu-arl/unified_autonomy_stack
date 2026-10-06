@@ -5,3 +5,7 @@ data/
 logs/
 unified_autonomy_stack.code-workspace
 AGENTS.md
+evaluation_results/
+__pycache__/
+
+.venv-evaluation/
