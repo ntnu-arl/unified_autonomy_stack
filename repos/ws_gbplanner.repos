@@ -18,7 +18,7 @@ repositories:
   src/exploration/pci_general:
     type: git
     url: git@github.com:ntnu-arl/pci_general.git
-    version: dev/unified_autonomy_stack
+    version: dev/agentic_uas
   src/mapping/elevation_mapping:
     type: git
     url: git@github.com:ANYbotics/elevation_mapping.git
