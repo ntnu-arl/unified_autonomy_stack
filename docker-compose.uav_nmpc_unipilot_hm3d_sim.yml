@@ -1,0 +1,5 @@
+# Converted assets live in the workspace; the external HM3D drive is not mounted.
+include:
+  - path:
+      - docker-compose.uav_nmpc_unipilot_sim.yml
+      - docker-compose.hm3d.override.yml

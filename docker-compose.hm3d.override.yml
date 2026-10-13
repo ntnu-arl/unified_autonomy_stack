@@ -1,0 +1,17 @@
+# Merge with the normal Unipilot simulation; only the Gazebo world changes.
+services:
+  ros2_launch_uav_sim:
+    volumes:
+      - type: bind
+        source: ${HM3D_ASSETS:-./generated/hm3d}
+        target: /hm3d
+        read_only: true
+        bind:
+          create_host_path: false
+    command:
+      - ros2
+      - launch
+      - robot_bringup
+      - uav_hm3d_sim.launch.py
+      - assets_dir:=/hm3d
+      - scene:=${HM3D_SCENE:-00001-UVdNNRcVyV1}

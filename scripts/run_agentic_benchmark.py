@@ -257,6 +257,8 @@ class BenchmarkRunner:
         repetitions = self.args.repetitions or self.manifest.get('repetitions', 3)
         for repetition, world_id in itertools.product(range(repetitions), worlds):
             world = self.manifest['worlds'][world_id]
+            self.pci_config()
+            self.planner_config(world)  # Reject invalid bounds before launching any containers.
             for task_id in self.args.tasks or list(world['tasks']):
                 # Rotate order to reduce systematic warm-cache/order effects.
                 for method in methods[repetition % len(methods):] + methods[:repetition % len(methods)]:
@@ -272,6 +274,57 @@ class BenchmarkRunner:
                                    'visibility': copy.deepcopy(self.manifest.get('visibility', {})),
                                    'metrics': copy.deepcopy(self.manifest.get('metrics', {}))})
         return trials[:self.args.max_runs] if self.args.max_runs else trials
+
+    def agent_config(self, trial: dict[str, Any]) -> dict[str, Any]:
+        """Resolve the method and synchronize agent target limits with the planner.
+
+        :param trial: Selected environment, method and decision budget.
+        :return: Independent agent configuration saved for this trial.
+        """
+        profile = copy.deepcopy(self.profile)
+        profile.update(model=self.model, method={'type': trial['method']},
+                       max_model_iterations=trial['max_model_iterations'])
+        if trial['world'].get('gbplanner_bounds') is not None:
+            profile['goal_bounds'] = dict(enabled=True, **trial['world']['gbplanner_bounds'])
+        return profile
+
+    def pci_config(self) -> dict[str, Any]:
+        """Configure the optional benchmark scan without changing shared profiles.
+
+        :return: Trial PCI configuration, including the scan rate.
+        """
+        source = REPOSITORIES['bringup'] / 'config/ros1/gbplanner/uav_nmpc_unipilot_sim/planner_control_interface_config.yaml'
+        config = yaml.safe_load(source.read_text())
+        runtime = self.manifest.get('runtime', {})
+        enabled = runtime.get('initialization_yaw_scan', False)
+        rate = runtime.get('initialization_yaw_rate', 0.35)
+        if type(enabled) is not bool or type(rate) not in (int, float) or not math.isfinite(rate) or rate <= 0:
+            raise ValueError('initialization_yaw_scan must be boolean and initialization_yaw_rate finite and positive')
+        config['init_motion'].update(yaw_scan_enable=enabled, yaw_scan_rate=rate)
+        return config
+
+    def planner_config(self, world: dict[str, Any]) -> dict[str, Any]:
+        """Create the trial planner configuration with optional world-specific bounds.
+
+        :param world: Environment settings from the benchmark manifest.
+        :return: Full planner configuration; the shared source file is unchanged.
+        """
+        source = REPOSITORIES['bringup'] / 'config/ros1/gbplanner/uav_nmpc_unipilot_sim/gbplanner_config.yaml'
+        config = yaml.safe_load(source.read_text())
+        bounds = world.get('gbplanner_bounds')
+        if bounds is not None:
+            if not isinstance(bounds, dict) or set(bounds) != {'min', 'max'}:
+                raise ValueError('gbplanner_bounds must contain min and max XYZ lists')
+            for key in ('min', 'max'):
+                values = bounds[key]
+                if (not isinstance(values, list) or len(values) != 3 or
+                        any(type(value) not in (int, float) or not math.isfinite(value) for value in values)):
+                    raise ValueError(f'gbplanner_bounds.{key} must contain three finite numbers')
+            if any(low >= high for low, high in zip(bounds['min'], bounds['max'])):
+                raise ValueError('gbplanner_bounds.min must be strictly below max on every axis')
+            config['BoundedSpaceParams']['Global'].update(
+                type='kCuboid', min_val=bounds['min'], max_val=bounds['max'])
+        return config
 
     def compose_config(self, trial: dict[str, Any], folder: Path, project: str) -> dict[str, Any]:
         """Resolve the normal stack and apply isolated benchmark overrides.
@@ -308,7 +361,9 @@ class BenchmarkRunner:
         services['ros1_launch_roscore']['command'] = ['roscore', '-p', str(self.args.master_port)]
         # Normal planner wait-for-sensors logic remains intact.
         planner = services['ros1_launch_gbplanner']['command']
-        planner[-1] += f" rviz:={'true' if self.args.rviz else 'false'}"
+        planner[-1] += (" gbplanner_config_file:=/evaluation/run/gbplanner.yaml"
+                        " pci_file:=/evaluation/run/pci.yaml"
+                        f" rviz:={'true' if self.args.rviz else 'false'}")
         world = trial['world']
         x, y, z, yaw = world['start']
         services['ros2_launch_uav_sim']['command'] = [
@@ -318,6 +373,7 @@ class BenchmarkRunner:
             f"world_name:={world['world_name']}", f'x:={x}', f'y:={y}', f'z:={z}',
             f'Y:={yaw}', f"gz_extra_args:=--seed {trial['seed']}", 'verbosity:=2']
         mount = {'type': 'bind', 'source': str(folder), 'target': '/evaluation/run'}
+        services['ros1_launch_gbplanner']['volumes'].append(dict(mount, read_only=True))
         services['ros2_launch_uav_sim']['volumes'].append(dict(mount, read_only=True))
         agent = services['ros2_launch_agentic_uas']
         agent['volumes'].append(mount)
@@ -360,13 +416,14 @@ class BenchmarkRunner:
             return None
         if (folder / 'trial.json').exists():
             saved = json.loads((folder / 'trial.json').read_text())
+            for key, default in (('initialization_yaw_scan', False), ('initialization_yaw_rate', 0.35)):
+                if saved.get('runtime', {}).get(key, default) != self.manifest.get('runtime', {}).get(key, default):
+                    raise ValueError(f'Resume settings differ for {key} in {folder}; use a new campaign')
             for key in ('model', 'method', 'world_id', 'task_id', 'seed', 'world', 'task', 'max_model_iterations'):
                 if saved.get(key) != trial.get(key):
                     raise ValueError(f'Resume settings differ for {key} in {folder}; use the original arguments or a new campaign')
         if (folder / 'agent.yaml').exists():
-            expected = copy.deepcopy(self.profile)
-            expected.update(model=self.model, method={'type': trial['method']},
-                            max_model_iterations=trial['max_model_iterations'])
+            expected = self.agent_config(trial)
             if yaml.safe_load((folder / 'agent.yaml').read_text()) != expected:
                 raise ValueError(f'Agent configuration changed in {folder}; restore it or use a new campaign')
         outcome_path = folder / 'runner_outcome.json'
@@ -431,12 +488,11 @@ class BenchmarkRunner:
         extract_task(folder / 'world.sdf', REPOSITORIES['worlds'] / 'models',
                      trial['task'].get('targets', []), folder)
         write_json(folder / 'trial.json', trial)
-        profile = copy.deepcopy(self.profile)
-        profile['model'] = self.model
-        profile['max_model_iterations'] = trial['max_model_iterations']
         # Methods use their registered defaults; all other settings are held fixed.
-        profile['method'] = {'type': trial['method']}
+        profile = self.agent_config(trial)
         (folder / 'agent.yaml').write_text(yaml.safe_dump(profile, sort_keys=False))
+        (folder / 'gbplanner.yaml').write_text(yaml.safe_dump(self.planner_config(trial['world']), sort_keys=False))
+        (folder / 'pci.yaml').write_text(yaml.safe_dump(self.pci_config(), sort_keys=False))
         config = self.compose_config(trial, folder, project)
         for volume in config.get('volumes', {}).values():
             if volume.get('external') and volume.get('name'):

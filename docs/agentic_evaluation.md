@@ -218,6 +218,36 @@ python scripts/run_agentic_benchmark.py --manifest /tmp/my-benchmark.yaml \
   --worlds office --tasks search --list
 ```
 
+Within `worlds.<world>`, set the planner's global exploration box independently
+of the evaluation ROI:
+
+```yaml
+roi: [8.0, -12.0, 0.2, 19.0, -2.0, 2.2]  # Only the voxel-counting metric.
+gbplanner_bounds:
+  min: [7.0, -13.0, 0.0]  # XYZ in the map frame, metres.
+  max: [24.0, 0.0, 2.5]
+```
+
+The runner saves a complete `gbplanner.yaml` in each trial directory and passes
+it to `gbplanner_sim.launch` through `gbplanner_config_file`. These values set
+`BoundedSpaceParams.Global.min_val` and `max_val` with type `kCuboid`; local
+planning settings and the shared simulation configuration remain unchanged.
+Each minimum must be strictly below its maximum, and all entries must be finite.
+Include the initial pose, takeoff height and desired task areas in the box.
+Omitting `gbplanner_bounds` retains the normal profile's global bounds. Bounds
+are also recorded in `trial.json`; changing them requires a new campaign rather
+than resuming results with different settings.
+
+The runner also copies these bounds into the agent's `goal_bounds` configuration.
+Bearing methods receive six plane constraints in the captured Current camera's
+optical frame, without global robot/camera poses. Their normalized bearing times
+distance must satisfy every plane. The adapter rejects an out-of-box transformed
+waypoint and supplies the rejection event for another decision; it never clips a
+target to the boundary. Sample/frontier observations (including imaginary
+fallbacks) are filtered to the same box, and all methods are checked again before
+any planner stop/start or target publish. These limits constrain target endpoints;
+GBPlanner remains responsible for collision checks and path planning.
+
 Within `worlds.<world>.tasks.<task>` configure:
 
 ```yaml
@@ -341,3 +371,15 @@ Free disk space, then repeat the original benchmark command with `--resume`. Use
 Use `--resume --dry-run` to inspect what will be skipped or restarted without launching containers or moving recordings. Changed task or agent settings are rejected to avoid silently mixing experiments. Original provenance is retained, and the resumed checkout is recorded under `resume_provenance/`. A storage-limit outcome stops the campaign until space is freed.
 
 Measurement plots overlay individual trials on mean bars, with horizontal lines marking the median. Whiskers show ±1 sample standard deviation across valid trials, not confidence intervals; SD is undefined and omitted for a single trial. Reviewed-success plots retain Wilson 95% confidence intervals. The metric table includes mean, median and SD.
+
+### Optional initialization yaw scan
+
+In `config/evaluation/agentic_benchmark.yaml` in robot_bringup, set:
+
+```yaml
+runtime:
+  initialization_yaw_scan: true
+  initialization_yaw_rate: 0.35  # rad/s; approximately 18 seconds for a full turn
+```
+
+The benchmark takes off and settles as usual, then requests PCI's stationary 360-degree scan. It waits for PCI to confirm the measured turn and final heading before setting the task and starting the agent. It does not repeat GBPlanner's climb/drop/forward initialization motion. The scan is recorded in the bag and startup events, but excluded from task runtime and distance metrics. Disabled by default. Each trial saves `pci.yaml` and the runtime settings; resuming rejects changed scan settings. Use a new campaign to compare scan-enabled and scan-disabled runs. Rebuild `pci_general`, `agentic_uas`, and `robot_bringup` in their matching workspaces before running.

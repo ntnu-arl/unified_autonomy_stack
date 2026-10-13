@@ -9,3 +9,6 @@ evaluation_results/
 __pycache__/
 
 .venv-evaluation/
+
+# Local decoded HM3D assets, conversion tools, and sensor validation artifacts.
+generated/
