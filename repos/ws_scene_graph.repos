@@ -6,11 +6,11 @@ repositories:
   src/hydra:
     type: git
     url: https://github.com/ntnu-arl/reasoning_hydra_private.git
-    version: ros2_jazzy/object_graph
+    version: dev/agentic_uas
   src/hydra_ros:
     type: git
     url: https://github.com/ntnu-arl/hydra_ros_private.git
-    version: ros2_jazzy/object_graph
+    version: dev/agentic_uas
   src/ianvs:
     type: git
     url: https://github.com/MIT-SPARK/Ianvs.git
@@ -30,7 +30,7 @@ repositories:
   src/semantic_inference:
     type: git
     url: https://github.com/ntnu-arl/semantic_inference_ros_private.git
-    version: ros2_jazzy/object_graph
+    version: dev/agentic_uas
   src/spark_dsg:
     type: git
     url: https://github.com/ntnu-arl/reasoning_Spark-DSG_private.git
