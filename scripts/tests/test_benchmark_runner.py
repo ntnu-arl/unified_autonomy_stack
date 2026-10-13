@@ -18,6 +18,7 @@ SPEC.loader.exec_module(runner_module)
 class RunnerTest(unittest.TestCase):
     def test_initialization_yaw_scan_config(self):
         runner = self.runner()
+        runner.manifest['runtime']['initialization_yaw_scan'] = False
         self.assertFalse(runner.pci_config()['init_motion']['yaw_scan_enable'])
         runner.manifest['runtime'].update(initialization_yaw_scan=True, initialization_yaw_rate=0.4)
         self.assertEqual(runner.pci_config()['init_motion']['yaw_scan_rate'], 0.4)
@@ -27,8 +28,21 @@ class RunnerTest(unittest.TestCase):
             with self.assertRaises(ValueError):
                 runner.pci_config()
 
+    def test_flexible_target_options_survive_method_selection(self):
+        runner = self.runner()
+        runner.profile['method'].update(allow_bearing=True, min_distance=2., max_distance=25.)
+        for trial in runner.trials():
+            method = runner.agent_config(trial)['method']
+            if trial['method'] in {'graph_sample', 'frontier', 'graph_scene_graph', 'frontier_scene_graph'}:
+                self.assertTrue(method['allow_bearing'])
+                self.assertEqual(method['max_distance'], 25.)
+            else:
+                self.assertNotIn('allow_bearing', method)
+            self.assertNotIn('scene_graph', method)
+
     def test_agent_and_planner_share_bounds_for_every_method(self):
         runner = self.runner(repetitions=1)
+        original_profile = copy.deepcopy(runner.profile)
         for trial in runner.trials():
             with self.subTest(world=trial['world_id'], method=trial['method']):
                 profile = runner.agent_config(trial)
@@ -37,7 +51,7 @@ class RunnerTest(unittest.TestCase):
                 planner = runner.planner_config(trial['world'])['BoundedSpaceParams']['Global']
                 self.assertEqual(profile['goal_bounds']['min'], planner['min_val'])
                 self.assertEqual(profile['goal_bounds']['max'], planner['max_val'])
-        self.assertFalse(runner.profile['goal_bounds']['enabled'])
+        self.assertEqual(runner.profile, original_profile)
 
     def test_world_planner_bounds_override_only_global_space(self):
         runner = self.runner()
@@ -99,7 +113,8 @@ class RunnerTest(unittest.TestCase):
             trial = runner.trials()[0]
             folder = runner.trial_folder(trial)
             folder.mkdir(parents=True)
-            (folder / 'trial.json').write_text(json.dumps(trial))
+            saved = dict(trial, runtime=copy.deepcopy(runner.manifest.get('runtime', {})))
+            (folder / 'trial.json').write_text(json.dumps(saved))
             profile = runner.agent_config(trial)
             (folder / 'agent.yaml').write_text(yaml.safe_dump(profile))
             outcome_path = folder / 'runner_outcome.json'

@@ -15,6 +15,18 @@ This stack presents an autonomy architecture integrating perception, planning, a
 
 The documentation of the Unified Autonomy Stack is available at [https://ntnu-arl.github.io/unified_autonomy_stack/](https://ntnu-arl.github.io/unified_autonomy_stack/).
 
+## Direct scene launch
+
+```bash
+make launch-sim COLLECTION=gz_sim_worlds SCENE=rmf_hotel
+make launch-sim COLLECTION=subt_cave_sim SCENE=darpa_cave_01
+make launch-sim COLLECTION=hm3d SCENE=00800-TEEsavR23oF
+make stop-sim
+```
+
+See [simulation instructions](docs/simulation.md) for scene listing, spawn overrides,
+optional scene graphs, and prerequisites. These commands do not run a benchmark.
+
 ## Citation
 If you use the Unified Autonomy Stack in your research, please consider citing the following paper:
 
