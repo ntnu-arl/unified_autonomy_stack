@@ -6,7 +6,91 @@ The Simulation environment utilizes **Gazebo** and **Aerial Gym Simulator**. Gaz
 
 We provide ROS 2 simulators for multi-rotor and differntial drive wheeled robot integrated with the Unified Autonomy Stack. Both simulators are located in the `unified_autonomy_stack/workspaces/ws_sim` workspace.
 
-### Unipilot world presets
+### Launch individual scenes from Make
+
+Use `launch-sim` to run the normal Unipilot simulation, GBPlanner, NMPC, ROS bridge,
+agent and ROS 1 RViz in any of the three local scene collections. This does not run
+the benchmark, assign a task, start the agent, or perform takeoff automatically.
+Docker images and the simulation/agent workspaces must already be built. The
+scene selector uses host Python 3 and PyYAML (`python3-yaml`).
+
+```bash
+# Open-RMF scenes in gz_sim_worlds; saved XYZ/yaw presets are used.
+make launch-sim COLLECTION=gz_sim_worlds SCENE=rmf_office
+make launch-sim COLLECTION=gz_sim_worlds SCENE=rmf_hotel
+make launch-sim COLLECTION=gz_sim_worlds SCENE=rmf_airport_terminal
+
+# SubT cave scene with the existing default spawn.
+make launch-sim COLLECTION=subt_cave_sim SCENE=darpa_cave_01
+
+# An already converted HM3D validation scene; use its saved import spawn.
+make launch-sim COLLECTION=hm3d SCENE=00800-TEEsavR23oF
+
+# Available filenames/scene IDs and a preview without launching Docker.
+make list-scenes
+make launch-sim-dry-run COLLECTION=gz_sim_worlds SCENE=rmf_hotel
+
+# Stop before switching scenes. Assets and model caches are retained.
+make stop-sim
+```
+
+`SCENE` is an HM3D directory ID, or the filename/stem of a world under the selected
+package's `worlds/` directory. Exact filenames, including `.world` or `.sdf`, are
+accepted. The selector reads the internal Gazebo world name from the SDF so robot
+spawning, sensor bridges and TF agree; you do not need to supply `world_name`.
+Gazebo and SubT spawn presets are stored in
+[`robot_bringup/config/simulation/scene_spawns.yaml`](../workspaces/robot_bringup/config/simulation/scene_spawns.yaml).
+Entries are grouped by collection and keyed by exact world filename, with values
+`[x, y, z, yaw]`. Edit this file to change a saved spawn or add another world.
+HM3D spawns remain in each converted scene's JSON metadata under
+`generated/hm3d/worlds/` (or `HM3D_ASSETS/worlds/`). The selector does not read the
+benchmark configuration or apply benchmark tasks, timing, ROI or planning bounds.
+
+`physics_step_sec` in the same config defaults to **0.001 s**, matching the UAV
+motor/controller integration used in evaluation. Some source worlds, including
+the hotel, use a 10 ms step that destabilizes the UAV. The launcher writes a
+prepared copy under `generated/simulation/worlds/<collection>/` and mounts it
+read-only into Gazebo; source dataset worlds are unchanged. Spawn roll and pitch
+are explicitly zero, with yaw taken from the preset or `SPAWN` override.
+
+For a world without a saved spawn, provide a known free-space spawn explicitly:
+
+```bash
+make launch-sim COLLECTION=gz_sim_worlds SCENE=rmf_clinic SPAWN="X Y Z YAW"
+```
+
+Replace all four placeholders with numbers. XYZ are **world-frame metres**, yaw
+is **radians**. `SPAWN` can override a saved spawn for any collection. Office/hotel/
+airport presets, the standard cave preset and imported HM3D spawns are available;
+other scenes do not have automatic free-space discovery. Use `launch-sim-dry-run`
+to inspect the resolved command before starting.
+
+Optional arguments:
+
+```bash
+# Add Jazzy Hydra and its existing sensor transport to the selected scene.
+make launch-sim COLLECTION=gz_sim_worlds SCENE=rmf_hotel WITH_SCENE_GRAPH=true
+
+# Use another directory of converted HM3D assets, mounted read-only.
+make launch-sim COLLECTION=hm3d SCENE=00800-TEEsavR23oF HM3D_ASSETS=/path/to/converted/hm3d
+
+# Run Compose in the background; stop with make stop-sim.
+make launch-sim COLLECTION=gz_sim_worlds SCENE=rmf_office DOCKER_ARGS=-d
+```
+
+Enter a task in the ROS 1 GBPlanner panel's **Agent task** text box and click
+**Send Task**. After the panel confirms reception, click **Start Agent** to begin.
+Submitting a new task while the agent is running replaces its current task;
+submitting to an idle agent leaves it waiting for Start. **Stop Agent** stops
+reasoning and the planner. Task text uses the `/agentic_uas/task` topic bridge,
+while Start/Stop use the existing bridged services.
+
+Attach with `make attach-agentic_uas` when using terminal services instead.
+Initialize the robot manually as usual. Match agent `goal_bounds` to GBPlanner's global bounds
+if customizing them for the selected scene. HM3D must be converted first; see
+[HM3D conversion and sensor instructions](hm3d_simulation.md).
+
+### Existing Unipilot world presets
 
 One Compose file supports both environments, with the office as the default:
 

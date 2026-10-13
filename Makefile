@@ -55,6 +55,22 @@ LAUNCH_SERVICES_STRIPPED := $(LAUNCH_SERVICES_ROS1) $(LAUNCH_SERVICES_ROS2)
 launch: ## Launch all services
 	@docker compose -f $(DOCKER_COMPOSE_FILE) --profile launch up $(DOCKER_ARGS)
 
+# Direct scene selection; no benchmark process, task assignment, or automatic takeoff.
+export COLLECTION SCENE SPAWN WITH_SCENE_GRAPH HM3D_ASSETS DOCKER_ARGS
+.PHONY: launch-sim launch-sim-dry-run list-scenes stop-sim
+
+launch-sim: ## Launch a scene: COLLECTION=hm3d|gz_sim_worlds|subt_cave_sim SCENE=<id/name>
+	@python3 scripts/launch_sim_scene.py
+
+launch-sim-dry-run: ## Print the selected scene, spawn and simulator command without starting Docker
+	@python3 scripts/launch_sim_scene.py --dry-run
+
+list-scenes: ## List local Gazebo worlds and converted HM3D scene IDs
+	@python3 scripts/launch_sim_scene.py --list
+
+stop-sim: ## Stop the direct simulation and its optional scene graph; retain assets and caches
+	@docker compose -f docker-compose.uav_nmpc_unipilot_sim.yml --profile launch down --remove-orphans
+
 #TODO: launch for specific services
 
 stop: ## Stop all launched services

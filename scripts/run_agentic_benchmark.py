@@ -282,7 +282,12 @@ class BenchmarkRunner:
         :return: Independent agent configuration saved for this trial.
         """
         profile = copy.deepcopy(self.profile)
-        profile.update(model=self.model, method={'type': trial['method']},
+        method = {'type': trial['method']}
+        if trial['method'] in {'graph_sample', 'frontier', 'graph_scene_graph', 'frontier_scene_graph'}:
+            # Preserve experiment-wide target options without carrying method-specific topics or graphs.
+            method.update({key: value for key, value in profile.get('method', {}).items()
+                           if key in {'allow_bearing', 'min_distance', 'max_distance', 'min_goal_distance'}})
+        profile.update(model=self.model, method=method,
                        max_model_iterations=trial['max_model_iterations'])
         if trial['world'].get('gbplanner_bounds') is not None:
             profile['goal_bounds'] = dict(enabled=True, **trial['world']['gbplanner_bounds'])
