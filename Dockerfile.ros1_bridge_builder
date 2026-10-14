@@ -253,6 +253,23 @@ RUN if [[ "$ADD_mavros_msgs" = "1" ]]; then\
     time colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release;\
 fi
 
+# PiCASo custom interface: build both ROS versions before generating the bridge.
+# Derive the ROS1 message from the driver's definition so the payload cannot drift.
+COPY workspaces/ws_air_sonar/src/picaso-drone/picaso_msgs /ws_ros1_bridge/src/picaso_msgs
+COPY bridge_interfaces/ros1/picaso_msgs /picaso_msgs_ros1/src/picaso_msgs
+RUN mkdir -p /picaso_msgs_ros1/src/picaso_msgs/msg; \
+    sed 's|builtin_interfaces/Time|time|g' \
+      /ws_ros1_bridge/src/picaso_msgs/msg/Capture.msg \
+      > /picaso_msgs_ros1/src/picaso_msgs/msg/Capture.msg; \
+    cd /picaso_msgs_ros1; \
+    unset ROS_DISTRO; \
+    colcon build --merge-install --install-base /ws_ros1_bridge/ros1_interfaces \
+      --cmake-args -DCMAKE_BUILD_TYPE=Release -DCATKIN_ENABLE_TESTING=OFF
+RUN source /opt/ros/humble/setup.bash; \
+    cd /ws_ros1_bridge; \
+    colcon build --packages-select picaso_msgs \
+      --cmake-args -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
+
 ###########################
 # 7.) Compile ros1_bridge
 ###########################
@@ -313,6 +330,10 @@ RUN                                                                             
     fi;\  
     #                                                                                           \
     #-------------------------------------                                                      \
+    # Make both PiCASo interfaces visible to bridge code generation.                             \
+    source /ws_ros1_bridge/ros1_interfaces/setup.bash;                                          \
+    source /opt/ros/humble/setup.bash;                                                          \
+    source /ws_ros1_bridge/install/local_setup.bash;                                            \
     # Finally, build the Bridge                                                                 \
     #-------------------------------------                                                      \
     mkdir -p /ws_ros1_bridge/src;                                                       \
@@ -324,7 +345,7 @@ RUN                                                                             
     NPROC=$(nproc);  MIN=$((MEMG<NPROC ? MEMG : NPROC));                                        \
     #                                                                                           \
     echo "Please wait...  running $MIN concurrent jobs to build ros1_bridge";                   \
-    time MAKEFLAGS="-j $MIN" colcon build --event-handlers console_direct+                      \
+    time MAKEFLAGS="-j $MIN" colcon build --packages-select ros1_bridge --event-handlers console_direct+ \
       --cmake-args -DCMAKE_BUILD_TYPE=Release
 
 ###########################

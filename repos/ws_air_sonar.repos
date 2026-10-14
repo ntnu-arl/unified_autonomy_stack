@@ -1,0 +1,5 @@
+repositories:
+  src/picaso-drone:
+    type: git
+    url: git@github.com:ntnu-arl/picaso-drone.git
+    version: ros2_driver

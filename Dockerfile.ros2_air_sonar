@@ -1,0 +1,20 @@
+FROM ros:humble-ros-base
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Interfaces, serial acquisition, and optional paired USB-camera captures.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3-colcon-common-extensions \
+    python3-numpy \
+    python3-opencv \
+    python3-pytest \
+    python3-serial \
+    ros-humble-diagnostic-msgs \
+    ros-humble-rosidl-default-generators \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+WORKDIR /workspace
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["bash"]

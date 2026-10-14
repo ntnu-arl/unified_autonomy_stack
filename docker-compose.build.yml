@@ -70,6 +70,14 @@ services:
 
   # ==================== DRIVERS ====================
 
+  # --- PICASO Air Sonar (ROS2) ---
+  build_air_sonar:
+    <<: [*colcon-build-template]
+    image: unified_autonomy:ros2_air_sonar
+    volumes:
+      - *robot-bringup-volume
+      - ./workspaces/ws_air_sonar:/workspace
+
   # IMU
   # --- VectorNav ---
   build_vectornav:

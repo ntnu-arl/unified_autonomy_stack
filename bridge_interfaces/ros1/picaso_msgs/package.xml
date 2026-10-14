@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>picaso_msgs</name>
+  <version>0.1.0</version>
+  <description>ROS 1 counterpart of the PiCASo capture interface for ros1_bridge.</description>
+  <maintainer email="albertgassol1@gmail.com">Albert Gassol</maintainer>
+  <license>Proprietary</license>
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>message_generation</build_depend>
+  <exec_depend>message_runtime</exec_depend>
+  <depend>std_msgs</depend>
+</package>

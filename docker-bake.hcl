@@ -3,7 +3,7 @@ variable "REGISTRY" {
 }
 
 group "default" {
-  targets = ["ros1_base", "ros2_base", "ros1_gbplanner", "cuda_pytorch", "ros2_cuda", "ros2_nmpc", "ros2_cbf", "ros1-bridge-builder", "ros2_ros1_bridge", "ros2_rl"]
+  targets = ["ros1_base", "ros2_base", "ros1_gbplanner", "cuda_pytorch", "ros2_cuda", "ros2_nmpc", "ros2_cbf", "ros1-bridge-builder", "ros2_ros1_bridge", "ros2_rl", "ros2_air_sonar"]
 }
 
 target "default" {
@@ -42,6 +42,13 @@ target "ros2_ros1_bridge" {
   network = "host"
 }
 
+
+target "ros2_air_sonar" {
+  context    = "."
+  dockerfile = "Dockerfile.ros2_air_sonar"
+  tags       = ["${REGISTRY}:ros2_air_sonar"]
+  network = "host"
+}
 
 // Derived images (depend on base images)
 

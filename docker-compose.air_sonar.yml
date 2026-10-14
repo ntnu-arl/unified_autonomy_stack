@@ -1,0 +1,34 @@
+# Standalone hardware driver: no simulator, planner, bridge, GPU, or ROS 1 master.
+name: uas_air_sonar
+
+services:
+  ros2_launch_air_sonar:
+    image: unified_autonomy:ros2_air_sonar
+    profiles: [launch]
+    working_dir: /workspace
+    network_mode: host
+    restart: "no"
+    stdin_open: true
+    tty: true
+    environment:
+      ROS_DOMAIN_ID: ${DOMAIN_ID:-205}
+      ROS_LOCALHOST_ONLY: ${ROS_LOCALHOST_ONLY:-0}
+    command:
+      - ros2
+      - launch
+      - robot_bringup
+      - air_sonar.launch.py
+      - port:=${AIR_SONAR_PORT:-config}
+    # Mount the host device directory rather than resolving a devices: mapping
+    # once at startup: USB reconnects replace ttyACM nodes and the udev symlink.
+    # The cgroup still limits access to serial ports and the optional USB camera.
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    device_cgroup_rules:
+      - 'c 166:* rw'  # ttyACM (PICASO STM32 USB CDC)
+      - 'c 188:* rw'  # ttyUSB serial adapters
+      - 'c 81:* rw'   # Optional V4L2 webcam; disabled by default in config
+    volumes:
+      - ./workspaces/ws_air_sonar:/workspace
+      - ./workspaces/robot_bringup:/workspace/src/robot_bringup:ro
+      - /dev:/dev:rw

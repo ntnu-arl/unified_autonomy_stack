@@ -283,6 +283,20 @@ services:
 
   # ==================== AUXILIARY SENSORS (not consumed by mimosa/gbplanner/NMPC) ====================
 
+  # --- PICASO Air Sonar (ROS2) ---
+  ros2_launch_air_sonar:
+    extends:
+      file: docker-compose.air_sonar.yml
+      service: ros2_launch_air_sonar
+    # Match the bridge's uid and IPC namespace for FastDDS shared-memory delivery.
+    ipc: host
+    user: "1000:1000"
+    group_add:
+      - "${AIR_SONAR_DIALOUT_GID:-20}"
+      - "${AIR_SONAR_VIDEO_GID:-44}"
+    environment:
+      HOME: /tmp
+
   # --- RealSense D455 (USB) ---
   # Started alongside the stack purely so its topics exist (rviz visualization, bag_rec.launch
   # recording of the /compressed siblings) - nothing else in this stack subscribes to it.
