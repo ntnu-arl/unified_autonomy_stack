@@ -806,6 +806,71 @@ Test containers/bags from this verification pass were cleaned up afterward excep
 file under `./data/`, left in place as evidence (`quail_2026-08-15-11-29-27_0.bag`) — delete it if not
 wanted.
 
+### 10h. D455 recording silently dies mid-session — USB autosuspend on the composite UVC device (host-level fix)
+
+Reported symptom (2026-10-27): after leaving `launch_stack` running unattended for a while, the recorded
+bag was missing the D455 streams entirely, even though every other sensor's topics were present. Initial
+suspicion was the detach/background method itself (`nohup`/`disown`, or an SSH session dropping) killing
+the camera specifically — **ruled out by direct reproduction**: brought up just the
+`roscore`/`recorder`/`bridge_params`/`ros1_bridge`/`ros2_launch_realsense` chain against the real
+hardware, tried (a) attached foreground, (b) `setsid nohup ... & disown` (fully detached, reparented to
+PID 1), and (c) an abrupt `SIGKILL` of the SSH client mid-session (simulating a dropped connection with no
+`nohup` at all) — **D455 recorded fine in every one of these**, including the SIGKILL case: the
+containers and the ROS2 node are managed by `dockerd`, not by the SSH session or its CLI client, so they
+never see the disconnect at all.
+
+**Root-caused via `journalctl -k`, not guesswork**: during one of these runs (the SIGKILL case,
+~75s after the camera came up), the bag stopped growing and `ros2 topic hz` on
+`/d455/color/image_raw/compressed` went silent — while the container stayed `Up` and the ROS2 node
+process stayed alive the whole time (so a plain `restart: unless-stopped` policy would **not** have
+helped: Docker only restarts on container exit, and this one never exited, it just hung retrying USB
+I/O forever). The kernel log for the same window told the real story:
+
+```
+usb 2-1: USB disconnect, device number 8
+usb 2-1: Device not responding to setup address.
+usb usb2-port1: attempt power cycle
+usb usb2-port1: unable to enumerate USB device
+```
+
+A genuine USB-level drop, not a software/session issue. Checked `/sys/bus/usb/devices/2-1/power/control`
+on the device while it was up and running normally: **`auto`**, with `autosuspend_delay_ms` of `2000` —
+the kernel's generic USB autosuspend was enabled for this device. UVC/isochronous video-class devices are
+a well-known weak spot for Linux's generic USB power management (routinely fail to resume cleanly from
+suspend); none of this stack's *other* sensors are exposed to the same failure mode purely because none
+of them are generic-USB UVC devices in the first place (lidar/radar are Ethernet/UART, MAVROS is
+serial/UDP to the FC, the MIPI cameras go through dedicated camera hardware + GStreamer, not
+`libusb`/UVC) — this was never a "D455 is treated differently" issue, it's that D455 is structurally the
+only device here `power/control=auto` could ever bite.
+
+**Fix — disable autosuspend for this device specifically, persistently, via udev (not a one-off runtime
+toggle that reverts on the next unplug/reboot)**. New file `/etc/udev/rules.d/99-realsense-no-autosuspend.rules`
+on quail (host-level, outside the repo — not something `vcstool`/a container image can carry):
+
+```
+ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="8086", ATTR{idProduct}=="0b5c", TEST=="power/control", ATTR{power/control}="on"
+```
+
+```bash
+sudo udevadm control --reload-rules
+sudo udevadm trigger          # may not force-reapply to an already-enumerated device - a replug does
+echo on | sudo tee /sys/bus/usb/devices/2-1/power/control   # immediate one-off, for the current boot
+cat /sys/bus/usb/devices/2-1/power/control                  # should read "on"
+```
+
+Matches by `idVendor`/`idProduct`, not the `2-1` bus/port path, so it keeps applying even if the camera
+ends up on a different port after a cable/hub change.
+
+**Verified, not just applied**: same minimal chain as above, run continuously and unattended for
+~6 minutes straight (vs. the ~34s of continuous streaming that preceded the original fatal disconnect) —
+zero `usb 2-1` disconnect events in `journalctl -k` for the entire window (other than the one harmless
+re-enumeration blip every D455 session has on first connect), and the resulting bag confirmed a steady,
+gapless ~14.7Hz on both `/d455/color/image_raw/compressed` and `/d455/depth/image_rect_raw/compressedDepth`
+(5224/5225 messages over 356s) the whole way through.
+
+Test bags from this investigation (`quail_2026-10-27-17-03-55_0.bag`, `quail_2026-10-27-17-07-57_0.bag`,
+`quail_2026-10-27-17-25-49_0.bag`, under `./data/`) are safe to delete, same as §10g's leftover.
+
 ---
 
 ## 11. `launch_stack` / `launch_px4` shell aliases
